@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+  <!-- FontAwesome 6.5.2 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <!-- Tipografia -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            navy: { 950: '#0a0e30', 900: '#121953', 800: '#1b2568', 700: '#263082', 600: '#34409e' },
+            teal: { DEFAULT: '#00b9c2', light: '#4dd8de', dark: '#007d84', 50: '#e6fafb', 100: '#ccf3f5' }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    
+    .topo-lines-dark {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='none' stroke='%2300b9c2' stroke-opacity='0.10'%3E%3Cpath d='M-20,40 C40,10 80,70 140,40 S240,10 280,40'/%3E%3Cpath d='M-20,95 C40,65 80,125 140,95 S240,65 280,95'/%3E%3Cpath d='M-20,150 C40,120 80,180 140,150 S240,120 280,150'/%3E%3Cpath d='M-20,205 C40,175 80,235 140,205 S240,175 280,205'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: 240px 240px;
+    }
+    .tnum {
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+{% endblock %}
+
+{% block body_block %}
+  <div class="bg-[#f7f9fc] text-slate-800 font-sans min-h-screen flex flex-col antialiased">
+    <!-- TopNavBar -->
+    <nav class="w-full bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 h-16 flex items-center justify-between shrink-0 fixed top-0 z-50">
+      <div class="font-bold text-navy-900 text-xl tracking-tight">FinAtlas</div>
+      <div class="hidden md:flex items-center gap-8">
+        <a class="text-sm font-medium text-slate-500 hover:text-teal transition-colors duration-200" href="http://127.0.0.1:8000/admin/">Admin</a>
+      </div>
+    </nav>
+
+    <!-- Main Content Canvas -->
+    <main class="flex-grow flex flex-col md:flex-row min-h-screen pt-16">
+      <!-- Left Side: Visual Anchor -->
+      <section class="hidden md:flex md:w-1/2 relative overflow-hidden items-center justify-center bg-navy-950">
+        <!-- Textura Topográfica -->
+        <div class="absolute inset-0 topo-lines-dark opacity-70"></div>
+        <!-- Decorative Light Sweep -->
+        <div class="absolute -top-1/4 -left-1/4 w-full h-full bg-teal-dark/30 blur-[120px] rounded-full"></div>
+
+        <div class="relative z-10 flex flex-col items-center text-center px-12">
+          <img alt="FinAtlas Logo" class="w-48 h-48 mb-10 drop-shadow-2xl" src="{% static 'img/finatlas_logo_completo_branco_fundo_transparente.png' %}" />
+          <h2 class="text-white font-sans font-bold text-4xl mb-6 tracking-tight drop-shadow-xl leading-tight">Excelência em Dados,<br />Precisão em Decisões.</h2>
+          <div class="w-12 h-1 bg-teal rounded-full mb-8"></div>
+          <p class="font-sans text-slate-300 max-w-md leading-relaxed text-sm">O terminal definitivo para consultoria financeira de alto padrão. Acesse inteligência editorial e dados em tempo real.</p>
+        </div>
+      </section>
+
+      <!-- Right Side: Login Form -->
+      <section class="w-full md:w-1/2 flex items-center justify-center bg-[#f7f9fc] px-6 md:px-0 py-12">
+        <div class="w-full max-w-sm">
+          <div class="mb-10 text-center md:text-left">
+            <h1 class="font-sans font-bold text-3xl text-navy-900 tracking-tight mb-2">Bem-vindo</h1>
+            <p class="text-slate-500 font-sans text-sm">Entre com suas credenciais para acessar o painel editorial.</p>
+          </div>
+
+          {% if form.non_field_errors %}
+            <div class="mb-5 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+              {% for error in form.non_field_errors %}
+                <p class="text-sm font-medium text-red-700">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <form method="post" class="space-y-5">
+            {% csrf_token %}
+
+            <!-- Username / Email Field -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide" for="{{ form.username.id_for_label }}">Endereço de E-mail / Usuário</label>
+              <div class="relative group">
+                <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal transition-colors z-10"></i>
+                {{ form.username }}
+              </div>
+              {% if form.username.errors %}
+                {% for error in form.username.errors %}
+                  <p class="mt-1.5 text-xs text-red-500">{{ error }}</p>
+                {% endfor %}
+              {% endif %}
+            </div>
+
+            <!-- Password Field -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between items-center">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide" for="{{ form.password.id_for_label }}">Senha</label>
+                <a class="text-xs font-medium text-teal hover:text-teal-dark transition-colors" href="#">Esqueceu a senha?</a>
+              </div>
+              <div class="relative group">
+                <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal transition-colors z-10"></i>
+                {{ form.password }}
+                <button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors z-10" type="button" id="toggle-password"><i class="fa-solid fa-eye text-sm"></i></button>
+              </div>
+              {% if form.password.errors %}
+                {% for error in form.password.errors %}
+                  <p class="mt-1.5 text-xs text-red-500">{{ error }}</p>
+                {% endfor %}
+              {% endif %}
+            </div>
+
+            <div class="flex items-center space-x-2 pt-1">
+              <input class="w-4 h-4 text-teal border-slate-300 rounded focus:ring-teal/20 transition-colors cursor-pointer" id="remember" type="checkbox" name="remember" />
+              <label class="font-sans text-sm text-slate-600 select-none cursor-pointer" for="remember">Lembrar desta conta</label>
+            </div>
+
+            <button class="w-full py-3 mt-4 bg-navy-900 text-white rounded-lg font-sans font-semibold text-sm hover:bg-navy-800 transition-all active:scale-[0.98] shadow-md shadow-navy-900/10 flex justify-center items-center h-12" type="submit">Entrar</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full bg-white px-8 py-6 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+      <span class="font-sans text-xs text-slate-500">© 2026 FinAtlas. Todos os direitos reservados.</span>
+      <div class="flex items-center gap-6">
+        <a class="font-sans text-xs font-medium text-slate-500 hover:text-teal transition-colors" href="#">Suporte</a>
+        <a class="font-sans text-xs font-medium text-slate-500 hover:text-teal transition-colors" href="#">Termos de Uso</a>
+        <a class="font-sans text-xs font-medium text-slate-500 hover:text-teal transition-colors" href="#">Política de Privacidade</a>
+        <a class="font-sans text-xs font-medium text-slate-500 hover:text-teal transition-colors" href="#">Segurança</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Classes exatas do Tailwind usadas no arquivo de design de referência
+      const baseClasses = ['w-full', 'pl-11', 'py-2.5', 'bg-white', 'border', 'border-slate-200', 'rounded-lg', 'focus:ring-2', 'focus:ring-teal/20', 'focus:border-teal', 'outline-none', 'transition-all', 'font-sans', 'text-slate-800', 'text-sm', 'shadow-sm']
+    
+      // Aplica estilos e placeholder no input de Usuário/Email
+      const usernameInput = document.querySelector('input[name="username"]') || document.getElementById('id_username')
+      if (usernameInput) {
+        usernameInput.classList.add(...baseClasses, 'pr-4')
+        if (!usernameInput.getAttribute('placeholder')) {
+          usernameInput.setAttribute('placeholder', 'Digite seu e-mail ou Usuário')
+        }
+      }
+    
+      // Aplica estilos e placeholder no input de Senha
+      const passwordField = document.querySelector('input[name="password"]') || document.getElementById('id_password')
+      if (passwordField) {
+        passwordField.classList.add(...baseClasses, 'pr-10')
+        if (!passwordField.getAttribute('placeholder')) {
+          passwordField.setAttribute('placeholder', 'Digite sua senha')
+        }
+      }
+    
+      // Interação de visualização de senha
+      const togglePasswordBtn = document.getElementById('toggle-password')
+    
+      if (togglePasswordBtn && passwordField) {
+        const toggleIcon = togglePasswordBtn.querySelector('i')
+    
+        togglePasswordBtn.addEventListener('click', () => {
+          const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password'
+          passwordField.setAttribute('type', type)
+          toggleIcon.classList.toggle('fa-eye')
+          toggleIcon.classList.toggle('fa-eye-slash')
+        })
+      }
+    })
+  </script>
+{% endblock %}

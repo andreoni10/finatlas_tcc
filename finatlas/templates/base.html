@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>FinAtlas</title>
+
+    <meta name="description" content="Plataforma FinAtlas para gestão e visualização financeira." />
+    <meta name="author" content="FinAtlas" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#121953" />
+
+    <link rel="canonical" href="{{ request.build_absolute_uri }}" />
+
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FinAtlas" />
+    <meta property="og:title" content="FinAtlas" />
+    <meta property="og:description" content="Plataforma FinAtlas para gestão e visualização financeira." />
+    <meta property="og:url" content="{{ request.build_absolute_uri }}" />
+    <meta property="og:image" content="{% static 'img/android-chrome-192x192.png' %}" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FinAtlas" />
+    <meta name="twitter:description" content="Plataforma FinAtlas para gestão e visualização financeira." />
+    <meta name="twitter:image" content="{% static 'img/android-chrome-192x192.png' %}" />
+
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}" />
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}" />
+    <link rel="manifest" href="{% static 'img/site.webmanifest' %}" />
+
+    {% block extra_head %}
+
+    {% endblock %}
+  </head>
+  <body>
+    {% block body_block %}
+
+    {% endblock %}
+  </body>
+</html>
