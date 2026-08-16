@@ -6,7 +6,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>FinAtlas</title>
+    <title>
+      FinAtlas{% block body_title %}
+
+      {% endblock %}
+    </title>
 
     <meta name="description" content="Plataforma FinAtlas para gestão e visualização financeira." />
     <meta name="author" content="FinAtlas" />
@@ -33,6 +37,33 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}" />
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}" />
     <link rel="manifest" href="{% static 'img/site.webmanifest' %}" />
+
+    <!-- FontAwesome 6.5.2 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <!-- Tipografia -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            },
+            colors: {
+              navy: { 950: '#0a0e30', 900: '#121953', 800: '#1b2568', 700: '#263082', 600: '#34409e' },
+              teal: { DEFAULT: '#00b9c2', light: '#4dd8de', dark: '#007d84', 50: '#e6fafb', 100: '#ccf3f5' }
+            }
+          }
+        }
+      }
+    </script>
 
     {% block extra_head %}
 

@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 
 
@@ -12,7 +11,7 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
 
-            return redirect("dashboard:advisor")
+            return redirect("dashboard:assessor")
 
     else:
         form = AuthenticationForm()
@@ -22,3 +21,8 @@ def login_view(request):
         "accounts/login.html",
         {"form": form},
     )
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("login")

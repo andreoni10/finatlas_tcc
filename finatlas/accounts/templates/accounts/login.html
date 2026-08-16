@@ -2,33 +2,6 @@
 {% load static %}
 
 {% block extra_head %}
-  <!-- FontAwesome 6.5.2 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-
-  <!-- Tipografia -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace']
-          },
-          colors: {
-            navy: { 950: '#0a0e30', 900: '#121953', 800: '#1b2568', 700: '#263082', 600: '#34409e' },
-            teal: { DEFAULT: '#00b9c2', light: '#4dd8de', dark: '#007d84', 50: '#e6fafb', 100: '#ccf3f5' }
-          }
-        }
-      }
-    }
-  </script>
-
   <style>
     ::-webkit-scrollbar {
       width: 8px;
@@ -131,11 +104,6 @@
                   <p class="mt-1.5 text-xs text-red-500">{{ error }}</p>
                 {% endfor %}
               {% endif %}
-            </div>
-
-            <div class="flex items-center space-x-2 pt-1">
-              <input class="w-4 h-4 text-teal border-slate-300 rounded focus:ring-teal/20 transition-colors cursor-pointer" id="remember" type="checkbox" name="remember" />
-              <label class="font-sans text-sm text-slate-600 select-none cursor-pointer" for="remember">Lembrar desta conta</label>
             </div>
 
             <button class="w-full py-3 mt-4 bg-navy-900 text-white rounded-lg font-sans font-semibold text-sm hover:bg-navy-800 transition-all active:scale-[0.98] shadow-md shadow-navy-900/10 flex justify-center items-center h-12" type="submit">Entrar</button>
