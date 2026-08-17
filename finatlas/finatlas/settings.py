@@ -48,8 +48,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "accounts",
-    "dashboard",
+    "apps.accounts",
+    "apps.dashboard",
 ]
 
 MIDDLEWARE = [
@@ -150,7 +150,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Mantém o login por username ativo
-    'accounts.backends.EmailBackend',             # Ativa o seu novo login por e-mail
+    'apps.accounts.backends.EmailBackend',             # Ativa o seu novo login por e-mail
 ]
 
 #  Login and Logout URLs
