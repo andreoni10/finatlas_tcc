@@ -11,7 +11,11 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
 
-            return redirect("dashboard:assessor")
+            if user.role == user.Role.ASSESSOR:
+                return redirect("dashboard:assessor")
+
+            elif user.role == user.Role.FINANCEIRO:
+                return redirect("dashboard:financeiro")
 
     else:
         form = AuthenticationForm()
