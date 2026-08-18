@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block body_title %} — Lançamentos Manuais{% endblock %}
+
+{% block body_block %}
+<div class="min-h-screen bg-slate-50 py-8">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Cabeçalho -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">Lançamentos Manuais</h1>
+        <p class="text-sm text-slate-500">Cadastre operações de Seguros (PJ2) e Parceiros (Plus)</p>
+      </div>
+      <a href="{% url 'dashboard:financeiro' %}" class="inline-flex items-center text-sm font-medium text-slate-600 hover:text-navy-900 bg-white border border-slate-200 px-4 py-2 rounded-lg shadow-sm transition">
+        &larr; Voltar ao Painel
+      </a>
+    </div>
+
+    <!-- Mensagens de Sucesso / Erro -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="p-4 mb-6 text-sm bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center space-x-2">
+          <i class="fa-solid fa-circle-check text-emerald-600"></i>
+          <span>{{ message }}</span>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Grid com 2 Formulários Lado a Lado -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+      
+      <!-- Formulário 1: PJ2 Seguros -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-100">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">PJ2 — Seguros</h2>
+            <p class="text-xs text-slate-400">Prudential, MetLife ou Icatu (Comissão Assessor 60%)</p>
+          </div>
+        </div>
+
+        <form method="POST" class="space-y-4">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="salvar_seguro">
+          
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Assessor</label>
+            {{ form_seguro.assessor }}
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Data / Mês</label>
+              {{ form_seguro.data }}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Seguradora</label>
+              {{ form_seguro.seguradora }}
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nome do Cliente</label>
+            {{ form_seguro.cliente }}
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Comissão Bruta (R$)</label>
+              {{ form_seguro.comissao_bruta_escritorio }}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Parcela</label>
+              {{ form_seguro.parcela }}
+            </div>
+          </div>
+
+          <button type="submit" class="w-full mt-2 py-2.5 px-4 bg-navy-900 hover:bg-navy-800 text-white font-medium text-sm rounded-lg shadow transition">
+            Salvar Seguro (PJ2)
+          </button>
+        </form>
+      </div>
+
+      <!-- Formulário 2: Plus Parceiros -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-100">
+          <div class="w-10 h-10 rounded-xl bg-teal/10 text-teal-dark flex items-center justify-center font-bold">
+            <i class="fa-solid fa-handshake"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">Plus — 14 Parceiros</h2>
+            <p class="text-xs text-slate-400">Com dedução e cálculo automático de imposto</p>
+          </div>
+        </div>
+
+        <form method="POST" class="space-y-4">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="salvar_plus">
+          
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Assessor</label>
+            {{ form_plus.assessor }}
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Data / Mês</label>
+              {{ form_plus.data }}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Parceiro</label>
+              {{ form_plus.parceiro }}
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Produto</label>
+            {{ form_plus.produto }}
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Valor Bruto (R$)</label>
+              {{ form_plus.valor_bruto }}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">% Imposto</label>
+              {{ form_plus.pct_imposto }}
+            </div>
+          </div>
+
+          <button type="submit" class="w-full mt-2 py-2.5 px-4 bg-teal hover:bg-teal-dark text-white font-medium text-sm rounded-lg shadow transition">
+            Salvar Lançamento (Plus)
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabela com os Últimos Lançamentos Salvos -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h3 class="text-base font-bold text-slate-800 mb-4">Últimos Lançamentos Cadastrados</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Lista Seguros -->
+        <div>
+          <h4 class="text-xs font-bold uppercase text-slate-400 mb-2">Seguros Recentes</h4>
+          <div class="space-y-2">
+            {% for s in ultimos_seguros %}
+              <div class="p-3 bg-slate-50 rounded-lg text-xs border border-slate-100 flex justify-between items-center">
+                <div>
+                  <span class="font-bold text-slate-700">{{ s.seguradora }}</span> - {{ s.cliente }}
+                  <div class="text-[11px] text-slate-400">{{ s.assessor }} | {{ s.data|date:"d/m/Y" }}</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-bold text-teal-dark">R$ {{ s.comissao_assessor_60|floatformat:2 }}</div>
+                  <div class="text-[10px] text-slate-400">Parc. {{ s.parcela }}</div>
+                </div>
+              </div>
+            {% empty %}
+              <p class="text-xs text-slate-400 italic">Nenhum seguro cadastrado.</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Lista Plus -->
+        <div>
+          <h4 class="text-xs font-bold uppercase text-slate-400 mb-2">Plus Recentes</h4>
+          <div class="space-y-2">
+            {% for p in ultimos_plus %}
+              <div class="p-3 bg-slate-50 rounded-lg text-xs border border-slate-100 flex justify-between items-center">
+                <div>
+                  <span class="font-bold text-slate-700">{{ p.parceiro }}</span> - {{ p.produto }}
+                  <div class="text-[11px] text-slate-400">{{ p.assessor }} | {{ p.data|date:"d/m/Y" }}</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-bold text-teal-dark">R$ {{ p.valor_liquido|floatformat:2 }}</div>
+                  <div class="text-[10px] text-slate-400">Imposto: R$ {{ p.valor_imposto|floatformat:2 }}</div>
+                </div>
+              </div>
+            {% empty %}
+              <p class="text-xs text-slate-400 italic">Nenhum lançamento Plus cadastrado.</p>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
