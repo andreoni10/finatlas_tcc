@@ -71,5 +71,5 @@ class Assessor(models.Model):
         
 
     def __str__(self):
-        return self.user.name
+        return f"{self.user.first_name} {self.user.last_name} ({self.codigo_assessor})"
 
