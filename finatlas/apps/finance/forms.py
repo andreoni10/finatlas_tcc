@@ -62,3 +62,14 @@ class LancamentoPlusForm(forms.ModelForm):
             field.widget.attrs.update({
                 "class": "w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal focus:border-teal outline-none text-sm text-slate-800"
             })
+
+
+class ImportarPJ1Form(forms.Form):
+    data = forms.DateField(
+        label="Data de Competência (Mês de Referência)",
+        widget=forms.DateInput(attrs={"type": "date", "class": "w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"}),
+    )
+    arquivo_pj1 = forms.FileField(
+        label="Arquivo Excel PJ1 (.xlsx)",
+        widget=forms.FileInput(attrs={"accept": ".xlsx, .xls", "class": "w-full text-sm text-slate-500 border border-slate-300 rounded-lg p-2"}),
+    )

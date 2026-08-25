@@ -1,10 +1,20 @@
 {% extends "base.html" %}
 
-{% block body_title %} — Lançamentos Manuais{% endblock %}
+{% block body_title %} — Lançamentos{% endblock %}
 
 {% block body_block %}
 <div class="min-h-screen bg-slate-50 py-8">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+
+    <!-- TESTE -->
+    <!-- <form method="POST" class="space-y-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="teste">
+        <button type="submit" class="w-full mt-2 py-2.5 px-4 bg-teal hover:bg-teal-dark text-white font-medium text-sm rounded-lg shadow transition">
+            Teste
+        </button>
+    </form> -->
     
     <!-- Cabeçalho -->
     <div class="flex items-center justify-between mb-6">
@@ -128,6 +138,38 @@
 
           <button type="submit" class="w-full mt-2 py-2.5 px-4 bg-teal hover:bg-teal-dark text-white font-medium text-sm rounded-lg shadow transition">
             Salvar Lançamento (Plus)
+          </button>
+        </form>
+      </div>
+      
+      <!-- Formulário 3: Importar PJ1 -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-100">
+          <div class="w-10 h-10 rounded-xl bg-teal/10 text-teal-dark flex items-center justify-center font-bold">
+            <i class="fa-solid fa-handshake"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">PJ1</h2>
+            <p class="text-xs text-slate-400">Importar arquivo Excel</p>
+          </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="salvar_pj1">
+          
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Data do Lançamento</label>
+              {{ form_pj1.data }}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Arquivo PJ1</label>
+              {{ form_pj1.arquivo_pj1 }}
+            </div>
+          </div>
+          <button type="submit" class="w-full mt-2 py-2.5 px-4 bg-teal hover:bg-teal-dark text-white font-medium text-sm rounded-lg shadow transition">
+            Salvar Lançamento (PJ1)
           </button>
         </form>
       </div>
