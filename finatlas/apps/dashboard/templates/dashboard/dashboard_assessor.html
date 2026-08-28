@@ -1,10 +1,225 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block body_title %} — Dashboard do Assessor{% endblock %}
+{% block body_title %} — Demonstrativo do Assessor{% endblock %}
 
 {% block body_block %}
-<h1 class="text-2xl font-bold">Dashboard do Assessor {{ user.username }}</h1>
-<a href="{% url 'logout' %}"
-  class="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium transition hover:bg-white/10">Sair</a>
+<div class="min-h-screen bg-slate-50">
+  
+  <!-- Barra Superior -->
+  <header class="bg-navy-900 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <span class="text-xl font-black tracking-wider text-teal">FinAtlas</span>
+        <span class="text-xs bg-navy-800 text-teal-light px-2.5 py-1 rounded-full border border-navy-700">Assessor</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="text-sm text-slate-300">Olá, <strong>{{ request.user.first_name|default:request.user.username }}</strong></span>
+        <a href="{% url 'logout' %}" class="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-1.5 rounded-md transition">
+          <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Sair
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Filtro de Competência (Mês / Ano) -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-bold text-slate-800">Demonstrativo de Comissões</h2>
+        <p class="text-xs text-slate-500">Código do Assessor: <strong class="font-mono text-teal-dark">{{ assessor.codigo_assessor }}</strong></p>
+      </div>
+
+      <form method="GET" class="flex items-center space-x-2">
+        <select name="mes" class="text-xs rounded-lg border-slate-300 py-2">
+          {% for m in meses %}
+            <option value="{{ m.num }}" {% if m.num == mes_selecionado %}selected{% endif %}>{{ m.nome }}</option>
+          {% endfor %}
+        </select>
+        <select name="ano" class="text-xs rounded-lg border-slate-300 py-2">
+          {% for a in anos %}
+            <option value="{{ a }}" {% if a == ano_selecionado %}selected{% endif %}>{{ a }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="bg-navy-900 hover:bg-navy-800 text-white text-xs px-4 py-2 rounded-lg transition font-medium">
+          Filtrar
+        </button>
+      </form>
+    </div>
+
+    <!-- Cards de Resumo dos Valores -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-gradient-to-br from-teal-dark to-teal text-white p-5 rounded-2xl shadow-sm">
+        <span class="text-xs uppercase tracking-wider font-semibold opacity-90">Total a Receber</span>
+        <div class="text-2xl font-extrabold mt-2">R$ {{ total_geral|floatformat:2 }}</div>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">PJ1 (Geral)</span>
+        <div class="text-2xl font-bold text-slate-800 mt-2">R$ {{ total_pj1|floatformat:2 }}</div>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">PJ2 (Prev & Seguros)</span>
+        <div class="text-2xl font-bold text-slate-800 mt-2">R$ {{ total_pj2|floatformat:2 }}</div>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Plus (Parceiros)</span>
+        <div class="text-2xl font-bold text-slate-800 mt-2">R$ {{ total_plus|floatformat:2 }}</div>
+      </div>
+    </div>
+
+    <!-- Navegação em Abas (PJ1, PJ2 e Plus) -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="border-b border-slate-200 flex">
+        <button onclick="showTab('pj1')" id="tab-pj1" class="tab-btn px-6 py-4 font-semibold text-sm border-b-2 border-teal text-teal">
+          PJ1 (Geral)
+        </button>
+        <button onclick="showTab('pj2')" id="tab-pj2" class="tab-btn px-6 py-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700">
+          PJ2 (Previdência & Seguros)
+        </button>
+        <button onclick="showTab('plus')" id="tab-plus" class="tab-btn px-6 py-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700">
+          Plus (Parceiros)
+        </button>
+      </div>
+
+      <!-- Conteúdo Aba 1: PJ1 -->
+      <div id="content-pj1" class="tab-content p-6 overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
+            <tr>
+              <th class="p-3">Produto</th>
+              <th class="p-3">Categoria</th>
+              <th class="p-3">Cód. Cliente</th>
+              <th class="p-3">Receita Líquida</th>
+              <th class="p-3">Repasse Assessor</th>
+              <th class="p-3 text-right">Sua Comissão</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in pj1_itens %}
+              <tr class="border-b hover:bg-slate-50 transition">
+                <td class="p-3 font-semibold text-slate-800">{{ item.produto }}</td>
+                <td class="p-3">{{ item.categoria }}</td>
+                <td class="p-3 font-mono">{{ item.cod_cliente }}</td>
+                <td class="p-3">R$ {{ item.receita_liquida|floatformat:2 }}</td>
+                <td class="p-3">{{ item.repasse_assessor }}%</td>
+                <td class="p-3 font-bold text-teal-dark text-right">R$ {{ item.comissao_assessor|floatformat:2 }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="p-8 text-center text-slate-400">Nenhum lançamento de PJ1 encontrado para este mês.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Conteúdo Aba 2: PJ2 -->
+      <div id="content-pj2" class="tab-content p-6 hidden">
+        <h3 class="font-bold text-slate-800 text-sm mb-3">Previdência (Planilha)</h3>
+        <div class="overflow-x-auto mb-8">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
+              <tr>
+                <th class="p-3">Classificação</th>
+                <th class="p-3">Categoria</th>
+                <th class="p-3">Código Cliente</th>
+                <th class="p-3">Receita Líquida</th>
+                <th class="p-3 text-right">Comissão Escritório</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in pj2_prev_itens %}
+                <tr class="border-b">
+                  <td class="p-3 font-medium">{{ item.classificacao }}</td>
+                  <td class="p-3">{{ item.categoria }}</td>
+                  <td class="p-3 font-mono">{{ item.codigo_cliente }}</td>
+                  <td class="p-3">R$ {{ item.receita_liquida|floatformat:2 }}</td>
+                  <td class="p-3 font-bold text-slate-700 text-right">R$ {{ item.comissao_escritorio|floatformat:2 }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5" class="p-4 text-center text-slate-400">Sem registros de Previdência para este mês.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="font-bold text-slate-800 text-sm mb-3">Seguros (Lançamentos Manuais)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
+              <tr>
+                <th class="p-3">Seguradora</th>
+                <th class="p-3">Cliente</th>
+                <th class="p-3">Comissão Bruta Escritório</th>
+                <th class="p-3">Parcela</th>
+                <th class="p-3 text-right">Sua Comissão (60%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in pj2_seg_itens %}
+                <tr class="border-b">
+                  <td class="p-3 font-semibold text-slate-800">{{ item.seguradora }}</td>
+                  <td class="p-3">{{ item.cliente }}</td>
+                  <td class="p-3">R$ {{ item.comissao_bruta_escritorio|floatformat:2 }}</td>
+                  <td class="p-3">{{ item.parcela }}</td>
+                  <td class="p-3 font-bold text-teal-dark text-right">R$ {{ item.comissao_assessor_60|floatformat:2 }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5" class="p-4 text-center text-slate-400">Sem registros de Seguros para este mês.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Conteúdo Aba 3: Plus -->
+      <div id="content-plus" class="tab-content p-6 hidden overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
+            <tr>
+              <th class="p-3">Parceiro</th>
+              <th class="p-3">Produto</th>
+              <th class="p-3">Valor Bruto</th>
+              <th class="p-3">% Imposto</th>
+              <th class="p-3">Valor Imposto</th>
+              <th class="p-3 text-right">Valor Líquido a Receber</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in plus_itens %}
+              <tr class="border-b">
+                <td class="p-3 font-semibold text-slate-800">{{ item.parceiro }}</td>
+                <td class="p-3">{{ item.produto }}</td>
+                <td class="p-3">R$ {{ item.valor_bruto|floatformat:2 }}</td>
+                <td class="p-3">{{ item.pct_imposto }}%</td>
+                <td class="p-3 text-red-500">- R$ {{ item.valor_imposto|floatformat:2 }}</td>
+                <td class="p-3 font-bold text-teal-dark text-right">R$ {{ item.valor_liquido|floatformat:2 }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6" class="p-8 text-center text-slate-400">Sem registros da Plus para este mês.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Script para alternar as abas -->
+<script>
+  function showTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(el => {
+      el.classList.remove('border-teal', 'text-teal');
+      el.classList.add('border-transparent', 'text-slate-500');
+    });
+
+    document.getElementById('content-' + tabName).classList.remove('hidden');
+    const activeBtn = document.getElementById('tab-' + tabName);
+    activeBtn.classList.remove('border-transparent', 'text-slate-500');
+    activeBtn.classList.add('border-teal', 'text-teal');
+  }
+</script>
 {% endblock %}

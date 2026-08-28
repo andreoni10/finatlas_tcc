@@ -2,9 +2,9 @@ from decimal import Decimal
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import LancamentoPJ2SeguroForm, LancamentoPlusForm, ImportarPJ1Form
-from .models import LancamentoPJ2Seguro, LancamentoPlus
-from .services import importar_excel_pj1
+from .forms import LancamentoPJ2SeguroForm, LancamentoPlusForm, ImportarPJ1Form, ImportarPJ2Form
+from .models import LancamentoPJ2Seguro, LancamentoPlus, LancamentoPJ1, LancamentoPJ2Previdencia
+from .services import importar_excel_pj1, importar_excel_pj2
 from .decorators import cargo_requerido
 
 
@@ -14,33 +14,35 @@ def lancamentos_manuais(request):
     form_seguro = LancamentoPJ2SeguroForm(prefix="seguro")
     form_plus = LancamentoPlusForm(prefix="plus")
     form_pj1 = ImportarPJ1Form(prefix="pj1")
-
+    form_pj2 = ImportarPJ2Form(prefix="pj2")
     if request.method == "POST":
         action = request.POST.get("action")
-
-        # Se clicou em Salvar Seguro
         if action == "salvar_seguro":
             salvar_seguro(request, form_seguro)
-
-        # Se clicou em Salvar Plus
+            return redirect("finance:lancamentos_manuais")
         elif action == "salvar_plus":
             salvar_plus(request, form_plus)
-
-        # Se clicou em Salvar Lançamento (PJ1)
+            return redirect("finance:lancamentos_manuais")
         elif action == "salvar_pj1":
             salvar_pj1(request, form_pj1)
-                        
-
-    # Busca os últimos 5 lançamentos de cada para exibir na tela
+            return redirect("finance:lancamentos_manuais")
+        elif action == "salvar_pj2":
+            salvar_pj2(request, form_pj2)
+            return redirect("finance:lancamentos_manuais")
+    # Busca os últimos lançamentos para exibição
     ultimos_seguros = LancamentoPJ2Seguro.objects.select_related("assessor__user").order_by("-id")[:5]
     ultimos_plus = LancamentoPlus.objects.select_related("assessor__user").order_by("-id")[:5]
-
+    ultimos_pj1 = LancamentoPJ1.objects.select_related("assessor__user").order_by("-id")[:5]
+    ultimos_pj2 = LancamentoPJ2Previdencia.objects.select_related("assessor__user").order_by("-id")[:5]
     context = {
         "form_seguro": form_seguro,
         "form_plus": form_plus,
         "form_pj1": form_pj1,
+        "form_pj2": form_pj2,
         "ultimos_seguros": ultimos_seguros,
         "ultimos_plus": ultimos_plus,
+        "ultimos_pj1": ultimos_pj1,
+        "ultimos_pj2": ultimos_pj2,
     }
     return render(request, "finance/lancamentos_manuais.html", context)
 
@@ -67,10 +69,30 @@ def salvar_plus(request, form_plus):
 
 
 def salvar_pj1(request, form_pj1):
-    form_pj1 = ImportarPJ1Form(request.POST, request.FILES, prefix="pj1")
-            
-    if form_pj1.is_valid():
-        data = form_pj1.cleaned_data["data"]
-        arquivo_pj1 = form_pj1.cleaned_data["arquivo_pj1"]
-        importar_excel_pj1(arquivo_pj1)
-        messages.success(request, "Arquivo de PJ1 importado com sucesso!")
+    form = ImportarPJ1Form(request.POST, request.FILES, prefix="pj1")
+    if form.is_valid():
+        data = form.cleaned_data["data"]
+        arquivo_pj1 = form.cleaned_data["arquivo_pj1"]
+        try:
+            total = importar_excel_pj1(arquivo_pj1, data_competencia=data)
+            if total > 0:
+                messages.success(request, f"Sucesso! {total} linhas de PJ1 foram importadas e salvas.")
+            else:
+                messages.warning(request, "O arquivo foi lido, mas nenhuma linha coincidiu com o código dos assessores cadastrados.")
+        except Exception as e:
+            messages.error(request, f"Erro ao ler arquivo Excel: {e}")
+
+
+def salvar_pj2(request, form_pj2):
+    form = ImportarPJ2Form(request.POST, request.FILES, prefix="pj2")
+    if form.is_valid():
+        data = form.cleaned_data["data"]
+        arquivo_pj2 = form.cleaned_data["arquivo_pj2"]
+        try:
+            total = importar_excel_pj2(arquivo_pj2, data_competencia=data)
+            if total > 0:
+                messages.success(request, f"Sucesso! {total} linhas de PJ2 foram importadas e salvas.")
+            else:
+                messages.warning(request, "O arquivo foi lido, mas nenhuma linha coincidiu com os assessores cadastrados.")
+        except Exception as e:
+            messages.error(request, f"Erro ao ler arquivo PJ2: {e}")

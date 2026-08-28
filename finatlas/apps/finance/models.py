@@ -97,7 +97,7 @@ class LancamentoPJ2Seguro(models.Model):
     comissao_assessor_60 = models.DecimalField(
         "Comissão Assessor 60%", max_digits=12, decimal_places=2
     )
-    parcela = models.CharField("Parcela", max_length=20, default="1/1")
+    parcela = models.CharField("Parcela", max_length=20)
 
     def __str__(self):
         return f"Seguro {self.seguradora} - {self.cliente}"

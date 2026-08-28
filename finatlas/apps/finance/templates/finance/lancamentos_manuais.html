@@ -1,68 +1,119 @@
 {% extends "base.html" %}
 
-{% block body_title %} — Lançamentos{% endblock %}
+{% block body_title %} — Lançamentos & Importações{% endblock %}
 
 {% block body_block %}
 <div class="min-h-screen bg-slate-50 py-8">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-
-    <!-- TESTE -->
-    <!-- <form method="POST" class="space-y-4">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="teste">
-        <button type="submit" class="w-full mt-2 py-2.5 px-4 bg-teal hover:bg-teal-dark text-white font-medium text-sm rounded-lg shadow transition">
-            Teste
-        </button>
-    </form> -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     
     <!-- Cabeçalho -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Lançamentos Manuais</h1>
-        <p class="text-sm text-slate-500">Cadastre operações de Seguros (PJ2) e Parceiros (Plus)</p>
+        <h1 class="text-2xl font-bold text-slate-800">Lançamentos & Importações</h1>
+        <p class="text-sm text-slate-500">Importação de planilhas e lançamentos manuais para PJ1, PJ2 e Plus</p>
       </div>
       <a href="{% url 'dashboard:financeiro' %}" class="inline-flex items-center text-sm font-medium text-slate-600 hover:text-navy-900 bg-white border border-slate-200 px-4 py-2 rounded-lg shadow-sm transition">
         &larr; Voltar ao Painel
       </a>
     </div>
 
-    <!-- Mensagens de Sucesso / Erro -->
+    <!-- Mensagens -->
     {% if messages %}
       {% for message in messages %}
-        <div class="p-4 mb-6 text-sm bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center space-x-2">
-          <i class="fa-solid fa-circle-check text-emerald-600"></i>
+        <div class="p-4 mb-6 text-sm {% if message.tags == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800{% elif message.tags == 'warning' %}bg-amber-50 border-amber-200 text-amber-800{% else %}bg-red-50 border-red-200 text-red-800{% endif %} border rounded-xl flex items-center space-x-2">
+          <i class="fa-solid fa-circle-info"></i>
           <span>{{ message }}</span>
         </div>
       {% endfor %}
     {% endif %}
 
-    <!-- Grid com 2 Formulários Lado a Lado -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+    <!-- Grid com os 4 Cards de Lançamento / Importação -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
       
-      <!-- Formulário 1: PJ2 Seguros -->
+      <!-- Card 1: Importar PJ1 (Excel Geral) -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-100">
+            <div class="w-10 h-10 rounded-xl bg-teal/10 text-teal-dark flex items-center justify-center font-bold">
+              <i class="fa-solid fa-file-excel text-lg"></i>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">PJ1 — Planilha Geral</h2>
+              <p class="text-xs text-slate-400">Importar arquivo Excel (.xlsx) de PJ1</p>
+            </div>
+          </div>
+
+          <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="salvar_pj1">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Competência (Data)</label>
+              {{ form_pj1.data }}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Arquivo PJ1 (.xlsx)</label>
+              {{ form_pj1.arquivo_pj1 }}
+            </div>
+            <button type="submit" class="w-full py-2.5 px-4 bg-teal hover:bg-teal-dark text-white font-medium text-sm rounded-lg shadow transition">
+              Importar Planilha PJ1
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Card 2: Importar PJ2 (Excel: Banco XP, Mercado Internacional, XPCS) -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-100">
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+              <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">PJ2 — Planilhas (Banco XP, Internacional, XPCS)</h2>
+              <p class="text-xs text-slate-400">Importar qualquer um dos 3 arquivos de PJ2</p>
+            </div>
+          </div>
+
+          <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="salvar_pj2">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Competência (Data)</label>
+              {{ form_pj2.data }}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Arquivo PJ2 (.xlsx)</label>
+              {{ form_pj2.arquivo_pj2 }}
+            </div>
+            <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg shadow transition">
+              Importar Planilha PJ2
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Card 3: PJ2 Seguros (Manual) -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
         <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-100">
           <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-            <i class="fa-solid fa-shield-halved"></i>
+            <i class="fa-solid fa-shield-halved text-lg"></i>
           </div>
           <div>
-            <h2 class="text-lg font-bold text-slate-800">PJ2 — Seguros</h2>
-            <p class="text-xs text-slate-400">Prudential, MetLife ou Icatu (Comissão Assessor 60%)</p>
+            <h2 class="text-lg font-bold text-slate-800">PJ2 — Seguros (Manual)</h2>
+            <p class="text-xs text-slate-400">Prudential, MetLife ou Icatu (Repasse 60%)</p>
           </div>
         </div>
 
-        <form method="POST" class="space-y-4">
+        <form method="POST" class="space-y-3">
           {% csrf_token %}
           <input type="hidden" name="action" value="salvar_seguro">
-          
           <div>
             <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Assessor</label>
             {{ form_seguro.assessor }}
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Data / Mês</label>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Data</label>
               {{ form_seguro.data }}
             </div>
             <div>
@@ -74,7 +125,7 @@
             <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nome do Cliente</label>
             {{ form_seguro.cliente }}
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Comissão Bruta (R$)</label>
               {{ form_seguro.comissao_bruta_escritorio }}
@@ -84,36 +135,34 @@
               {{ form_seguro.parcela }}
             </div>
           </div>
-
           <button type="submit" class="w-full mt-2 py-2.5 px-4 bg-navy-900 hover:bg-navy-800 text-white font-medium text-sm rounded-lg shadow transition">
-            Salvar Seguro (PJ2)
+            Salvar Seguro
           </button>
         </form>
       </div>
 
-      <!-- Formulário 2: Plus Parceiros -->
+      <!-- Card 4: Plus Parceiros (Manual) -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
         <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-100">
-          <div class="w-10 h-10 rounded-xl bg-teal/10 text-teal-dark flex items-center justify-center font-bold">
-            <i class="fa-solid fa-handshake"></i>
+          <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-handshake text-lg"></i>
           </div>
           <div>
-            <h2 class="text-lg font-bold text-slate-800">Plus — 14 Parceiros</h2>
-            <p class="text-xs text-slate-400">Com dedução e cálculo automático de imposto</p>
+            <h2 class="text-lg font-bold text-slate-800">Plus — 14 Parceiros (Manual)</h2>
+            <p class="text-xs text-slate-400">Dedução e cálculo automático de imposto</p>
           </div>
         </div>
 
-        <form method="POST" class="space-y-4">
+        <form method="POST" class="space-y-3">
           {% csrf_token %}
           <input type="hidden" name="action" value="salvar_plus">
-          
           <div>
             <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Assessor</label>
             {{ form_plus.assessor }}
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Data / Mês</label>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Data</label>
               {{ form_plus.data }}
             </div>
             <div>
@@ -125,7 +174,7 @@
             <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Produto</label>
             {{ form_plus.produto }}
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Valor Bruto (R$)</label>
               {{ form_plus.valor_bruto }}
@@ -135,94 +184,12 @@
               {{ form_plus.pct_imposto }}
             </div>
           </div>
-
           <button type="submit" class="w-full mt-2 py-2.5 px-4 bg-teal hover:bg-teal-dark text-white font-medium text-sm rounded-lg shadow transition">
-            Salvar Lançamento (Plus)
+            Salvar Lançamento Plus
           </button>
         </form>
       </div>
-      
-      <!-- Formulário 3: Importar PJ1 -->
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-        <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-100">
-          <div class="w-10 h-10 rounded-xl bg-teal/10 text-teal-dark flex items-center justify-center font-bold">
-            <i class="fa-solid fa-handshake"></i>
-          </div>
-          <div>
-            <h2 class="text-lg font-bold text-slate-800">PJ1</h2>
-            <p class="text-xs text-slate-400">Importar arquivo Excel</p>
-          </div>
-        </div>
 
-        <form method="POST" enctype="multipart/form-data" class="space-y-4">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="salvar_pj1">
-          
-          <div class="grid grid-cols-1 gap-4">
-            <div>
-              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Data do Lançamento</label>
-              {{ form_pj1.data }}
-            </div>
-            <div>
-              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Arquivo PJ1</label>
-              {{ form_pj1.arquivo_pj1 }}
-            </div>
-          </div>
-          <button type="submit" class="w-full mt-2 py-2.5 px-4 bg-teal hover:bg-teal-dark text-white font-medium text-sm rounded-lg shadow transition">
-            Salvar Lançamento (PJ1)
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Tabela com os Últimos Lançamentos Salvos -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <h3 class="text-base font-bold text-slate-800 mb-4">Últimos Lançamentos Cadastrados</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        <!-- Lista Seguros -->
-        <div>
-          <h4 class="text-xs font-bold uppercase text-slate-400 mb-2">Seguros Recentes</h4>
-          <div class="space-y-2">
-            {% for s in ultimos_seguros %}
-              <div class="p-3 bg-slate-50 rounded-lg text-xs border border-slate-100 flex justify-between items-center">
-                <div>
-                  <span class="font-bold text-slate-700">{{ s.seguradora }}</span> - {{ s.cliente }}
-                  <div class="text-[11px] text-slate-400">{{ s.assessor }} | {{ s.data|date:"d/m/Y" }}</div>
-                </div>
-                <div class="text-right">
-                  <div class="font-bold text-teal-dark">R$ {{ s.comissao_assessor_60|floatformat:2 }}</div>
-                  <div class="text-[10px] text-slate-400">Parc. {{ s.parcela }}</div>
-                </div>
-              </div>
-            {% empty %}
-              <p class="text-xs text-slate-400 italic">Nenhum seguro cadastrado.</p>
-            {% endfor %}
-          </div>
-        </div>
-
-        <!-- Lista Plus -->
-        <div>
-          <h4 class="text-xs font-bold uppercase text-slate-400 mb-2">Plus Recentes</h4>
-          <div class="space-y-2">
-            {% for p in ultimos_plus %}
-              <div class="p-3 bg-slate-50 rounded-lg text-xs border border-slate-100 flex justify-between items-center">
-                <div>
-                  <span class="font-bold text-slate-700">{{ p.parceiro }}</span> - {{ p.produto }}
-                  <div class="text-[11px] text-slate-400">{{ p.assessor }} | {{ p.data|date:"d/m/Y" }}</div>
-                </div>
-                <div class="text-right">
-                  <div class="font-bold text-teal-dark">R$ {{ p.valor_liquido|floatformat:2 }}</div>
-                  <div class="text-[10px] text-slate-400">Imposto: R$ {{ p.valor_imposto|floatformat:2 }}</div>
-                </div>
-              </div>
-            {% empty %}
-              <p class="text-xs text-slate-400 italic">Nenhum lançamento Plus cadastrado.</p>
-            {% endfor %}
-          </div>
-        </div>
-
-      </div>
     </div>
 
   </div>

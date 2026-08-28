@@ -13,7 +13,7 @@ class LancamentoPJ2SeguroForm(forms.ModelForm):
 
     class Meta:
         model = LancamentoPJ2Seguro
-        # Note que não pedimos a "comissao_assessor_60" porque o sistema vai calcular sozinho!
+        # o sistema ira calcular sozinho a comissao do assessor
         fields = ["assessor", "data", "seguradora", "cliente", "comissao_bruta_escritorio", "parcela"]
         widgets = {
             "data": forms.DateInput(attrs={"type": "date"}),
@@ -50,7 +50,7 @@ class LancamentoPlusForm(forms.ModelForm):
 
     class Meta:
         model = LancamentoPlus
-        # Não pedimos valor_imposto nem valor_liquido porque calcularemos automaticamente!
+        # o sistema ira calcular sozinho o valor_imposto e o valor_liquido
         fields = ["assessor", "data", "parceiro", "produto", "valor_bruto", "pct_imposto"]
         widgets = {
             "data": forms.DateInput(attrs={"type": "date"}),
@@ -71,5 +71,17 @@ class ImportarPJ1Form(forms.Form):
     )
     arquivo_pj1 = forms.FileField(
         label="Arquivo Excel PJ1 (.xlsx)",
+        widget=forms.FileInput(attrs={"accept": ".xlsx, .xls", "class": "w-full text-sm text-slate-500 border border-slate-300 rounded-lg p-2"}),
+    )
+
+
+class ImportarPJ2Form(forms.Form):
+    data = forms.DateField(
+        label="Data de Competência (Mês de Referência)",
+        widget=forms.DateInput(attrs={"type": "date", "class": "w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"}),
+    )
+    arquivo_pj2 = forms.FileField(
+        label="Arquivo Excel PJ2 (.xlsx)",
+        help_text="Banco XP, Mercado Internacional ou XPCS",
         widget=forms.FileInput(attrs={"accept": ".xlsx, .xls", "class": "w-full text-sm text-slate-500 border border-slate-300 rounded-lg p-2"}),
     )
