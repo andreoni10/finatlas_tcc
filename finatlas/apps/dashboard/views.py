@@ -45,7 +45,7 @@ def advisor_dashboard(request):
     )
     # Cálculos dos Totais
     total_pj1 = pj1_itens.aggregate(total=Sum("comissao_assessor"))["total"] or 0
-    total_pj2_prev = pj2_prev_itens.aggregate(total=Sum("comissao_escritorio"))["total"] or 0
+    total_pj2_prev = pj2_prev_itens.aggregate(total=Sum("comissao_assessor_60"))["total"] or 0
     total_pj2_seg = pj2_seg_itens.aggregate(total=Sum("comissao_assessor_60"))["total"] or 0
     total_pj2_con = pj2_con_itens.aggregate(total=Sum("comissao_assessor_60"))["total"] or 0
     total_pj2 = float(total_pj2_prev) + float(total_pj2_seg) + float(total_pj2_con)

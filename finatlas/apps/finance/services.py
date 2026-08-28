@@ -136,9 +136,9 @@ def importar_excel_pj2(arquivo_excel, data_competencia=None):
             codigo_assessor=cod_assessor,
             receita_bruta=limpar_decimal(obter_coluna(row, col_map, "Receita Bruta")),
             receita_liquida=limpar_decimal(obter_coluna(row, col_map, "Receita Liquida")),
-            # comissao_pct_escritorio=limpar_decimal(obter_coluna(row, col_map, "Comissao Escritorio", "Comissao pct Escritorio", "Repasse")),
             comissao_pct_escritorio=limpar_decimal(obter_coluna(row, col_map, "Comissao pct Escritorio", "Repasse")),
             comissao_escritorio=limpar_decimal(obter_coluna(row, col_map, "Comissao Escritorio")),
+            comissao_assessor_60=limpar_decimal(obter_coluna(row, col_map, "Comissao Escritorio"))*0.6,
         )
         lancamentos_para_criar.append(lancamento)
 

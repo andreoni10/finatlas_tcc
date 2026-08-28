@@ -77,9 +77,12 @@ class LancamentoPJ2Previdencia(models.Model):
     comissao_escritorio = models.DecimalField(
         "Comissão Escritório", max_digits=12, decimal_places=2, default=0
     )
+    comissao_assessor_60 = models.DecimalField(
+        "Comissão Assessor 60%", max_digits=12, decimal_places=2, default=0
+    )
 
     def __str__(self):
-        return f"PJ2 Prev - {self.categoria} - R$ {self.comissao_escritorio}"
+        return f"PJ2 Prev - {self.categoria} - R$ {self.comissao_assessor_60}"
 
 
 class LancamentoPJ2Seguro(models.Model):
