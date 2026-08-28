@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import LancamentoPJ1, LancamentoPJ2Previdencia, LancamentoPJ2Seguro, LancamentoPlus
+from .models import LancamentoPJ1, LancamentoPJ2Previdencia, LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus
 
 
 @admin.register(LancamentoPJ1)
@@ -20,6 +20,13 @@ class LancamentoPJ2PrevAdmin(admin.ModelAdmin):
 class LancamentoPJ2SeguroAdmin(admin.ModelAdmin):
     list_display = ["seguradora", "cliente", "assessor", "comissao_bruta_escritorio", "comissao_assessor_60", "data"]
     list_filter = ["seguradora", "data", "assessor"]
+    search_fields = ["cliente"]
+
+
+@admin.register(LancamentoPJ2Consorcio)
+class LancamentoPJ2ConsorcioAdmin(admin.ModelAdmin):
+    list_display = ["administradora", "cliente", "assessor", "comissao_bruta_escritorio", "comissao_assessor_60", "data"]
+    list_filter = ["administradora", "data", "assessor"]
     search_fields = ["cliente"]
 
 

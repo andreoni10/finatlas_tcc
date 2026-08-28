@@ -1,5 +1,5 @@
 from django import forms
-from .models import LancamentoPJ2Seguro, LancamentoPlus
+from .models import LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus
 
 
 class LancamentoPJ2SeguroForm(forms.ModelForm):
@@ -15,6 +15,32 @@ class LancamentoPJ2SeguroForm(forms.ModelForm):
         model = LancamentoPJ2Seguro
         # o sistema ira calcular sozinho a comissao do assessor
         fields = ["assessor", "data", "seguradora", "cliente", "comissao_bruta_escritorio", "parcela"]
+        widgets = {
+            "data": forms.DateInput(attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Aplica estilo visual moderno em todos os campos
+        for field in self.fields.values():
+            field.widget.attrs.update({
+                "class": "w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal focus:border-teal outline-none text-sm text-slate-800"
+            })
+
+
+class LancamentoPJ2ConsorcioForm(forms.ModelForm):
+    # Lista fixa das 3 administradoras
+    ADMINISTRADORAS = [
+        ("MAPFRE", "Mapfre"),
+        ("CNP", "CNP"),
+        ("EMBRACON", "Embracon"),
+    ]
+    administradora = forms.ChoiceField(choices=ADMINISTRADORAS, label="Administradora")
+
+    class Meta:
+        model = LancamentoPJ2Consorcio
+        # o sistema ira calcular sozinho a comissao do assessor
+        fields = ["assessor", "data", "administradora", "cliente", "comissao_bruta_escritorio", "parcela"]
         widgets = {
             "data": forms.DateInput(attrs={"type": "date"}),
         }

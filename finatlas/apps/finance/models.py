@@ -103,6 +103,27 @@ class LancamentoPJ2Seguro(models.Model):
         return f"Seguro {self.seguradora} - {self.cliente}"
 
 
+class LancamentoPJ2Consorcio(models.Model):
+    assessor = models.ForeignKey(
+        Assessor, on_delete=models.CASCADE, verbose_name="Assessor"
+    )
+    data = models.DateField("Data")
+    administradora = models.CharField(
+        "Administradora", max_length=50
+    )  # Ex: MAPFRE, CNP, EMBRACON
+    cliente = models.CharField("Cliente", max_length=150)
+    comissao_bruta_escritorio = models.DecimalField(
+        "Comissão Bruta (R$) Escritório", max_digits=12, decimal_places=2
+    )
+    comissao_assessor_60 = models.DecimalField(
+        "Comissão Assessor 60%", max_digits=12, decimal_places=2
+    )
+    parcela = models.CharField("Parcela", max_length=20)
+
+    def __str__(self):
+        return f"Seguro {self.administradora} - {self.cliente}"
+
+
 class LancamentoPlus(models.Model):
     assessor = models.ForeignKey(
         Assessor, on_delete=models.CASCADE, verbose_name="Assessor"

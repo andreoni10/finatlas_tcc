@@ -141,7 +141,56 @@
         </form>
       </div>
 
-      <!-- Card 4: Plus Parceiros (Manual) -->
+      <!-- Card 4: PJ2 Consorcios (Manual) -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-100">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-shield-halved text-lg"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">PJ2 — Consórcios (Manual)</h2>
+            <p class="text-xs text-slate-400">Consórcios de Imóvel ou Veículo (Repasse 60%)</p>
+          </div>
+        </div>
+
+        <form method="POST" class="space-y-3">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="salvar_consorcio">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Assessor</label>
+            {{ form_consorcio.assessor }}
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Data</label>
+              {{ form_consorcio.data }}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Administradora</label>
+              {{ form_consorcio.administradora }}
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nome do Cliente</label>
+            {{ form_consorcio.cliente }}
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Comissão Bruta (R$)</label>
+              {{ form_consorcio.comissao_bruta_escritorio }}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Parcela</label>
+              {{ form_consorcio.parcela }}
+            </div>
+          </div>
+          <button type="submit" class="w-full mt-2 py-2.5 px-4 bg-navy-900 hover:bg-navy-800 text-white font-medium text-sm rounded-lg shadow transition">
+            Salvar Consórcio
+          </button>
+        </form>
+      </div>
+
+      <!-- Card 5: Plus Parceiros (Manual) -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
         <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-100">
           <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">

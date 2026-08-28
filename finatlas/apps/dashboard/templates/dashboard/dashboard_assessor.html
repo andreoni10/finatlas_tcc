@@ -59,7 +59,7 @@
         <div class="text-2xl font-bold text-slate-800 mt-2">R$ {{ total_pj1|floatformat:2 }}</div>
       </div>
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-        <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">PJ2 (Prev & Seguros)</span>
+        <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">PJ2 (Prev, Seguros & Consórcios)</span>
         <div class="text-2xl font-bold text-slate-800 mt-2">R$ {{ total_pj2|floatformat:2 }}</div>
       </div>
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
@@ -75,7 +75,7 @@
           PJ1 (Geral)
         </button>
         <button onclick="showTab('pj2')" id="tab-pj2" class="tab-btn px-6 py-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700">
-          PJ2 (Previdência & Seguros)
+          PJ2 (Prev, Seguros & Consórcios)
         </button>
         <button onclick="showTab('plus')" id="tab-plus" class="tab-btn px-6 py-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700">
           Plus (Parceiros)
@@ -145,7 +145,7 @@
         </div>
 
         <h3 class="font-bold text-slate-800 text-sm mb-3">Seguros (Lançamentos Manuais)</h3>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto mb-8">
           <table class="w-full text-left text-xs text-slate-600">
             <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
               <tr>
@@ -167,6 +167,34 @@
                 </tr>
               {% empty %}
                 <tr><td colspan="5" class="p-4 text-center text-slate-400">Sem registros de Seguros para este mês.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+        <h3 class="font-bold text-slate-800 text-sm mb-3">Consórcio (Lançamentos Manuais)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
+              <tr>
+                <th class="p-3">Administradora</th>
+                <th class="p-3">Cliente</th>
+                <th class="p-3">Comissão Bruta Escritório</th>
+                <th class="p-3">Parcela</th>
+                <th class="p-3 text-right">Sua Comissão (60%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in pj2_con_itens %}
+                <tr class="border-b">
+                  <td class="p-3 font-semibold text-slate-800">{{ item.administradora }}</td>
+                  <td class="p-3">{{ item.cliente }}</td>
+                  <td class="p-3">R$ {{ item.comissao_bruta_escritorio|floatformat:2 }}</td>
+                  <td class="p-3">{{ item.parcela }}</td>
+                  <td class="p-3 font-bold text-teal-dark text-right">R$ {{ item.comissao_assessor_60|floatformat:2 }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5" class="p-4 text-center text-slate-400">Sem registros de Consórcios para este mês.</td></tr>
               {% endfor %}
             </tbody>
           </table>
