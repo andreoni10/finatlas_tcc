@@ -15,7 +15,7 @@
       </div>
       <div class="flex items-center space-x-4">
         <span class="text-sm text-slate-300">Olá, <strong>{{ request.user.first_name|default:request.user.username }}</strong></span>
-        <a href="{% url 'logout' %}" class="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-1.5 rounded-md transition">
+        <a href="{% url 'accounts:logout' %}" class="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-1.5 rounded-md transition">
           <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Sair
         </a>
       </div>

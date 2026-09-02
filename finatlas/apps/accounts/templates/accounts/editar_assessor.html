@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block body_title %} — Editar Assessor{% endblock %}
+
+{% block body_block %}
+<div class="min-h-screen bg-slate-50 py-8">
+  <div class="max-w-xl mx-auto px-4">
+    
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">Editar Assessor</h1>
+        <p class="text-sm text-slate-500">Alterar informações de <strong>{{ assessor.user.get_full_name|default:assessor.user.username }}</strong></p>
+      </div>
+      <a href="{% url 'accounts:listar_assessores' %}" class="text-sm text-slate-600 hover:text-navy-900">&larr; Voltar</a>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+      <form method="POST" class="space-y-4">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nome</label>
+            {{ form.first_name }}
+            {{ form.first_name.errors }}
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Sobrenome</label>
+            {{ form.last_name }}
+            {{ form.last_name.errors }}
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">E-mail</label>
+          {{ form.email }}
+          {{ form.email.errors }}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Código do Assessor</label>
+          {{ form.codigo_assessor }}
+          {{ form.codigo_assessor.errors }}
+        </div>
+
+                <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Nova Senha</label>
+          <div class="relative group">
+            {{ form.nova_senha }}
+            <button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors z-10" type="button" id="toggle-password">
+              <i class="fa-solid fa-eye text-sm"></i>
+            </button>
+          </div>
+          <span class="text-[11px] text-slate-400">Deixe em branco para não alterar a senha atual</span>
+          {{ form.nova_senha.errors }}
+        </div>
+
+
+        <div class="flex items-center space-x-2 pt-2">
+          {{ form.is_active }}
+          <label class="text-sm text-slate-700 font-medium">Assessor Ativo no Sistema</label>
+        </div>
+
+        <div class="pt-4 flex items-center space-x-3">
+          <button type="submit" class="flex-1 py-2.5 px-4 bg-teal hover:bg-teal-dark text-white font-medium text-sm rounded-lg shadow transition">
+            Salvar Alterações
+          </button>
+          <a href="{% url 'accounts:listar_assessores' %}" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition">
+            Cancelar
+          </a>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Captura o input da nova senha
+    const passwordField = document.querySelector('input[name="nova_senha"]') || document.getElementById('id_nova_senha')
+    const togglePasswordBtn = document.getElementById('toggle-password')
+
+    if (togglePasswordBtn && passwordField) {
+      const toggleIcon = togglePasswordBtn.querySelector('i')
+
+      togglePasswordBtn.addEventListener('click', () => {
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password'
+        passwordField.setAttribute('type', type)
+        toggleIcon.classList.toggle('fa-eye')
+        toggleIcon.classList.toggle('fa-eye-slash')
+      })
+    }
+  })
+</script>
+
+{% endblock %}

@@ -155,6 +155,5 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 #  Login and Logout URLs
-LOGIN_URL = "login"
-# LOGIN_REDIRECT_URL = "dashboard:advisor"
-LOGOUT_REDIRECT_URL = "login"
+LOGIN_URL = "accounts:login"
+LOGOUT_REDIRECT_URL = "accounts:login"
