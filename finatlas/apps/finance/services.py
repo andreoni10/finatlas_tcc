@@ -1,11 +1,20 @@
+import datetime
 import unicodedata
+from decimal import Decimal
 import pandas as pd
 from apps.accounts.models import Assessor
-from .models import LancamentoPJ1, LancamentoPJ2Previdencia
+from django.db.models import Sum
+from .models import (
+    LancamentoPJ1,
+    LancamentoPJ2Previdencia,
+    LancamentoPJ2Seguro,
+    LancamentoPJ2Consorcio,
+    LancamentoPlus,
+    FechamentoMensalAssessor,
+)
 
-
+# Remove acentos e espaços para busca flexível de colunas
 def normalizar_texto(texto):
-    """Remove acentos e espaços para busca flexível de colunas."""
     if not texto:
         return ""
     clean = "".join(
@@ -14,8 +23,8 @@ def normalizar_texto(texto):
     return "".join(c for c in clean if c.isalnum() or c.isspace())
 
 
+# Retorna o valor de uma coluna testando diferentes variações de nomes.
 def obter_coluna(row, col_map, *chaves_possiveis, padrao=""):
-    """Retorna o valor de uma coluna testando diferentes variações de nomes."""
     for chave in chaves_possiveis:
         chave_norm = normalizar_texto(chave)
         col_real = col_map.get(chave_norm)
@@ -31,7 +40,8 @@ def limpar_decimal(valor):
         return float(valor)
 
     valor_str = str(valor).strip().replace(" ", "").replace("R$", "").replace("%", "")
-    valor_str = valor_str.replace(".", "").replace(",", ".")
+    valor_str = valor_str.replace(".", "").replace(",", ".") 
+
     try:
         return float(valor_str)
     except (ValueError, TypeError):
@@ -83,6 +93,7 @@ def importar_excel_pj1(arquivo_excel, data_competencia=None):
             repasse_assessor=limpar_decimal(row.get("Repasse (%) Assessor Direto")),
             comissao_assessor=limpar_decimal(row.get("Comissão (R$) Assessor Direto")),
         )
+
         lancamentos_para_criar.append(lancamento)
 
     if lancamentos_para_criar:
@@ -92,9 +103,6 @@ def importar_excel_pj1(arquivo_excel, data_competencia=None):
 
 
 def importar_excel_pj2(arquivo_excel, data_competencia=None):
-    """
-    Importa qualquer planilha de PJ2 (Banco XP, Mercado Internacional, XPCS, Previdência, etc.).
-    """
     df = pd.read_excel(arquivo_excel)
 
     # Mapeia colunas normalizadas: {'codigo assessor': 'Cdigo Assessor', ...}
@@ -140,9 +148,62 @@ def importar_excel_pj2(arquivo_excel, data_competencia=None):
             comissao_escritorio=limpar_decimal(obter_coluna(row, col_map, "Comissao Escritorio")),
             comissao_assessor_60=limpar_decimal(obter_coluna(row, col_map, "Comissao Escritorio"))*0.6,
         )
+        
         lancamentos_para_criar.append(lancamento)
 
     if lancamentos_para_criar:
         LancamentoPJ2Previdencia.objects.bulk_create(lancamentos_para_criar)
 
     return len(lancamentos_para_criar)
+
+
+# Calcula os totais brutos de PJ1, PJ2 e Plus das tabelas existentes
+# e salva o FechamentoMensalAssessor da competência
+def gerar_ou_atualizar_fechamento(assessor, ano, mes):
+    competencia = datetime.date(ano, mes, 1)
+    
+    # Soma Bruto PJ1
+    total_pj1 = LancamentoPJ1.objects.filter(
+        assessor=assessor, data__year=ano, data__month=mes
+    ).aggregate(total=Sum("comissao_assessor"))["total"] or Decimal("0.00")
+    
+     # Soma Bruto PJ2 (Previdência + Seguros + Consórcio)
+    prev_pj2 = LancamentoPJ2Previdencia.objects.filter(
+        assessor=assessor, data__year=ano, data__month=mes
+    ).aggregate(total=Sum("comissao_assessor_60"))["total"] or Decimal("0.00")
+    
+    seg_pj2 = LancamentoPJ2Seguro.objects.filter(
+        assessor=assessor, data__year=ano, data__month=mes
+    ).aggregate(total=Sum("comissao_assessor_60"))["total"] or Decimal("0.00")
+    
+    con_pj2 = LancamentoPJ2Consorcio.objects.filter(
+        assessor=assessor, data__year=ano, data__month=mes
+    ).aggregate(total=Sum("comissao_assessor_60"))["total"] or Decimal("0.00")
+    
+    # Soma os três lançamentos da PJ2
+    total_pj2 = Decimal(str(prev_pj2)) + Decimal(str(seg_pj2)) + Decimal(str(con_pj2))
+    
+    # Soma Bruto PLUS
+    total_plus = LancamentoPlus.objects.filter(
+        assessor=assessor, data__year=ano, data__month=mes
+    ).aggregate(total=Sum("valor_liquido"))["total"] or Decimal("0.00")
+    
+    # Obtém ou cria o fechamento
+    fechamento, criado = FechamentoMensalAssessor.objects.get_or_create(
+        assessor=assessor,
+        competencia=competencia,
+        defaults={
+            "pj1_bruto": Decimal(str(total_pj1)),
+            "pj2_bruto": Decimal(str(total_pj2)),
+            "plus_bruto": Decimal(str(total_plus)),
+        }
+    )
+    
+    if not criado:
+        # Se já existia, atualiza os brutos caso novas planilhas tenham sido importadas
+        fechamento.pj1_bruto = Decimal(str(total_pj1))
+        fechamento.pj2_bruto = Decimal(str(total_pj2))
+        fechamento.plus_bruto = Decimal(str(total_plus))
+        fechamento.save()
+    
+    return fechamento

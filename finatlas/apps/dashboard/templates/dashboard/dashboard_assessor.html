@@ -48,6 +48,114 @@
       </form>
     </div>
 
+        <!-- Tabela Oficial de Fechamento de Comissões (Conforme Modelo da Imagem) -->
+    {% if fechamento %}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+      <div class="bg-slate-50 border-b border-slate-200 p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+        <div>
+          <span class="text-slate-400 text-[10px] uppercase font-bold block">Assessor</span>
+          <strong class="text-slate-800">{{ assessor.user.get_full_name|default:assessor.user.username }}</strong>
+        </div>
+        <div>
+          <span class="text-slate-400 text-[10px] uppercase font-bold block">Código do Assessor</span>
+          <strong class="font-mono text-teal-dark">{{ assessor.codigo_assessor }}</strong>
+        </div>
+        <div>
+          <span class="text-slate-400 text-[10px] uppercase font-bold block">Mês Referência</span>
+          <strong class="text-slate-800">{{ fechamento.competencia|date:"F Y" }}</strong>
+        </div>
+        <div>
+          <span class="text-slate-400 text-[10px] uppercase font-bold block">Data do Pagamento</span>
+          <strong class="text-slate-800">{{ fechamento.data_pagamento|date:"d/m/Y"|default:"A definir" }}</strong>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-100 uppercase text-[11px] font-bold border-b border-slate-200">
+            <tr>
+              <th class="p-3">Origem</th>
+              <th class="p-3">Ref.</th>
+              <th class="p-3 text-right">Valor Bruto</th>
+              <th class="p-3 text-center">% Imposto</th>
+              <th class="p-3 text-right">Valor Imposto</th>
+              <th class="p-3 text-right">Valor Líquido</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 font-medium">
+            <tr>
+              <td class="p-3 font-bold text-slate-800">Accanto Assessoria</td>
+              <td class="p-3"><span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px]">PJ1</span></td>
+              <td class="p-3 text-right">R$ {{ fechamento.pj1_bruto|floatformat:2 }}</td>
+              <td class="p-3 text-center">{{ fechamento.pct_imposto_pj1 }}%</td>
+              <td class="p-3 text-right text-slate-500">R$ {{ fechamento.pj1_imposto|floatformat:2 }}</td>
+              <td class="p-3 text-right font-bold text-slate-800">R$ {{ fechamento.pj1_liquido|floatformat:2 }}</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-slate-800">Accanto Serviços</td>
+              <td class="p-3"><span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px]">PJ2</span></td>
+              <td class="p-3 text-right">R$ {{ fechamento.pj2_bruto|floatformat:2 }}</td>
+              <td class="p-3 text-center">{{ fechamento.pct_imposto_pj2 }}%</td>
+              <td class="p-3 text-right text-slate-500">R$ {{ fechamento.pj2_imposto|floatformat:2 }}</td>
+              <td class="p-3 text-right font-bold text-slate-800">R$ {{ fechamento.pj2_liquido|floatformat:2 }}</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-slate-800">PLUS</td>
+              <td class="p-3"><span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px]">PJ3</span></td>
+              <td class="p-3 text-right">R$ {{ fechamento.plus_bruto|floatformat:2 }}</td>
+              <td class="p-3 text-center">{{ fechamento.pct_imposto_plus }}%</td>
+              <td class="p-3 text-right text-slate-500">R$ {{ fechamento.plus_imposto|floatformat:2 }}</td>
+              <td class="p-3 text-right font-bold text-slate-800">R$ {{ fechamento.plus_liquido|floatformat:2 }}</td>
+            </tr>
+            <tr class="bg-rose-50/20">
+              <td class="p-3 font-semibold text-slate-700">Plano de Saúde - SulAmérica Saúde</td>
+              <td class="p-3 text-slate-400">-</td>
+              <td class="p-3 text-right text-slate-400">R$ -</td>
+              <td class="p-3 text-center text-slate-400">-</td>
+              <td class="p-3 text-right text-slate-400">R$ -</td>
+              <td class="p-3 text-right font-bold text-rose-600">- R$ {{ fechamento.plano_saude|floatformat:2 }}</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-slate-700">Outros Créditos</td>
+              <td class="p-3 text-slate-400">-</td>
+              <td class="p-3 text-right text-slate-400">R$ -</td>
+              <td class="p-3 text-center text-slate-400">-</td>
+              <td class="p-3 text-right text-slate-400">R$ -</td>
+              <td class="p-3 text-right font-bold text-emerald-600">{% if fechamento.outros_creditos > 0 %}+ R$ {{ fechamento.outros_creditos|floatformat:2 }}{% else %}R$ -{% endif %}</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-slate-700">Outros Débitos</td>
+              <td class="p-3 text-slate-400">-</td>
+              <td class="p-3 text-right text-slate-400">R$ -</td>
+              <td class="p-3 text-center text-slate-400">-</td>
+              <td class="p-3 text-right text-slate-400">R$ -</td>
+              <td class="p-3 text-right font-bold text-rose-600">{% if fechamento.outros_debitos > 0 %}- R$ {{ fechamento.outros_debitos|floatformat:2 }}{% else %}R$ -{% endif %}</td>
+            </tr>
+          </tbody>
+          <tfoot class="bg-slate-100 border-t-2 border-slate-300 font-bold text-slate-800">
+            <tr>
+              <td colspan="2" class="p-3 font-extrabold uppercase">Total:</td>
+              <td class="p-3 text-right">R$ {{ fechamento.total_bruto|floatformat:2 }}</td>
+              <td class="p-3 text-center text-slate-400">-</td>
+              <td class="p-3 text-right text-slate-600">R$ {{ fechamento.total_imposto|floatformat:2 }}</td>
+              <td class="p-3 text-right font-extrabold text-sm text-teal-dark bg-teal-50">
+                R$ {{ fechamento.total_liquido|floatformat:2 }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {% if fechamento.observacoes %}
+        <div class="p-4 bg-slate-50 border-t border-slate-200 text-xs">
+          <span class="font-bold text-slate-700 block mb-1">Observações:</span>
+          <p class="text-slate-600 whitespace-pre-line">{{ fechamento.observacoes }}</p>
+        </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+
     <!-- Cards de Resumo dos Valores -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <div class="bg-gradient-to-br from-teal-dark to-teal text-white p-5 rounded-2xl shadow-sm">

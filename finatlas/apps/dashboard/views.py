@@ -11,38 +11,33 @@ from apps.finance.models import (
     LancamentoPlus,
 )
 from .decorators import cargo_requerido
+from apps.finance.services import gerar_ou_atualizar_fechamento
 
 
 @cargo_requerido("assessor")
 @login_required
 def advisor_dashboard(request):
-    """
-    Dashboard do Assessor com isolamento de dados e filtro por mês/ano.
-    """
+    # Pegar o assessor logado
     try:
         assessor = request.user.advisor_profile
     except Assessor.DoesNotExist:
         return render(request, "dashboard/dashboard_assessor.html", {"sem_perfil": True})
+    
     # Pega o mês e ano do filtro (ou usa o mês/ano atual por padrão)
     hoje = datetime.date.today()
     mes = int(request.GET.get("mes", hoje.month))
     ano = int(request.GET.get("ano", hoje.year))
+
+    # Gera ou obtém o fechamento oficial do assessor
+    fechamento = gerar_ou_atualizar_fechamento(assessor, ano, mes)
+    
     # Consultas filtradas estritamente para o assessor logado
-    pj1_itens = LancamentoPJ1.objects.filter(
-        assessor=assessor, data__year=ano, data__month=mes
-    )
-    pj2_prev_itens = LancamentoPJ2Previdencia.objects.filter(
-        assessor=assessor, data__year=ano, data__month=mes
-    )
-    pj2_seg_itens = LancamentoPJ2Seguro.objects.filter(
-        assessor=assessor, data__year=ano, data__month=mes
-    )
-    pj2_con_itens = LancamentoPJ2Consorcio.objects.filter(
-        assessor=assessor, data__year=ano, data__month=mes
-    )
-    plus_itens = LancamentoPlus.objects.filter(
-        assessor=assessor, data__year=ano, data__month=mes
-    )
+    pj1_itens = LancamentoPJ1.objects.filter(assessor=assessor, data__year=ano, data__month=mes)
+    pj2_prev_itens = LancamentoPJ2Previdencia.objects.filter(assessor=assessor, data__year=ano, data__month=mes)
+    pj2_seg_itens = LancamentoPJ2Seguro.objects.filter(assessor=assessor, data__year=ano, data__month=mes)
+    pj2_con_itens = LancamentoPJ2Consorcio.objects.filter(assessor=assessor, data__year=ano, data__month=mes)
+    plus_itens = LancamentoPlus.objects.filter(assessor=assessor, data__year=ano, data__month=mes)
+    
     # Cálculos dos Totais
     total_pj1 = pj1_itens.aggregate(total=Sum("comissao_assessor"))["total"] or 0
     total_pj2_prev = pj2_prev_itens.aggregate(total=Sum("comissao_assessor_60"))["total"] or 0
@@ -51,6 +46,7 @@ def advisor_dashboard(request):
     total_pj2 = float(total_pj2_prev) + float(total_pj2_seg) + float(total_pj2_con)
     total_plus = plus_itens.aggregate(total=Sum("valor_liquido"))["total"] or 0
     total_geral = float(total_pj1) + float(total_pj2) + float(total_plus)
+    
     # Lista de meses para o select
     meses_disponiveis = [
         {"num": 1, "nome": "Janeiro"},
@@ -66,7 +62,30 @@ def advisor_dashboard(request):
         {"num": 11, "nome": "Novembro"},
         {"num": 12, "nome": "Dezembro"},
     ]
-    anos_disponiveis = [ano, ano - 1, ano - 2]
+    
+    # 1. Busca todos os anos com lançamentos para o assessor
+    anos_comissao = set()
+    modelos = [
+        LancamentoPJ1,
+        LancamentoPJ2Previdencia,
+        LancamentoPJ2Seguro,
+        LancamentoPJ2Consorcio,
+        LancamentoPlus,
+    ]
+    for model in modelos:
+        anos_encontrados = model.objects.filter(assessor=assessor).values_list("data__year", flat=True).distinct()
+        anos_comissao.update(filter(None, anos_encontrados))
+
+    # Garante o ano atual na lista para o assessor sempre poder consultar o ano corrente
+    anos_comissao.add(hoje.year)
+
+    # Pega do ano mais recente (max) ao mais antigo (min)
+    ano_recente = max(anos_comissao)
+    ano_antigo = min(anos_comissao)
+
+    # Gera a lista em ordem decrescente (ex: de 2026 até 2021)
+    anos_disponiveis = list(range(ano_recente, ano_antigo - 1, -1))
+    
     context = {
         "assessor": assessor,
         "mes_selecionado": mes,
@@ -85,7 +104,9 @@ def advisor_dashboard(request):
         "pj2_seg_itens": pj2_seg_itens,
         "pj2_con_itens": pj2_con_itens,
         "plus_itens": plus_itens,
+        "fechamento": fechamento,
     }
+    
     return render(request, "dashboard/dashboard_assessor.html", context)
 
 

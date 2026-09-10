@@ -1,5 +1,5 @@
 from django import forms
-from .models import LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus
+from .models import LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus, FechamentoMensalAssessor
 
 
 class LancamentoPJ2SeguroForm(forms.ModelForm):
@@ -111,3 +111,28 @@ class ImportarPJ2Form(forms.Form):
         help_text="Banco XP, Mercado Internacional ou XPCS",
         widget=forms.FileInput(attrs={"accept": ".xlsx, .xls", "class": "w-full text-sm text-slate-500 border border-slate-300 rounded-lg p-2"}),
     )
+
+
+class FechamentoMensalForm(forms.ModelForm):
+    class Meta:
+        model = FechamentoMensalAssessor
+        fields = [
+            "data_pagamento",
+            "pct_imposto_pj1",
+            "pct_imposto_pj2",
+            "pct_imposto_plus",
+            "plano_saude",
+            "outros_creditos",
+            "outros_debitos",
+            "observacoes",
+        ]
+        widgets = {
+            "data_pagamento": forms.DateInput(attrs={"type": "date"}),
+            "observacoes": forms.Textarea(attrs={"rows": 3, "placeholder": "Observações sobre o fechamento..."}),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({
+                "class": "w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal focus:border-teal outline-none text-sm text-slate-800"
+            })

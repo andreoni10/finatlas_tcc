@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import LancamentoPJ1, LancamentoPJ2Previdencia, LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus
+from .models import LancamentoPJ1, LancamentoPJ2Previdencia, LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus, FechamentoMensalAssessor
 
 
 @admin.register(LancamentoPJ1)
@@ -35,3 +35,103 @@ class LancamentoPlusAdmin(admin.ModelAdmin):
     list_display = ["parceiro", "produto", "assessor", "valor_bruto", "valor_liquido", "data"]
     list_filter = ["parceiro", "data", "assessor"]
     search_fields = ["produto", "parceiro"]
+
+
+@admin.register(FechamentoMensalAssessor)
+class FechamentoMensalAssessorAdmin(admin.ModelAdmin):
+    list_display = [
+        "assessor",
+        "competencia",
+        "data_pagamento",
+        "total_bruto",
+        "total_imposto",
+        "total_liquido",
+    ]
+    list_filter = ["competencia", "assessor"]
+    search_fields = [
+        "assessor__codigo_assessor",
+        "assessor__user__first_name",
+        "assessor__user__last_name",
+        "assessor__user__username",
+    ]
+    # Campos que o método save() calcula sozinho e que podemos exibir como somente leitura
+    readonly_fields = [
+        "pj1_imposto",
+        "pj1_liquido",
+        "pj2_imposto",
+        "pj2_liquido",
+        "plus_imposto",
+        "plus_liquido",
+        "total_bruto",
+        "total_imposto",
+        "total_liquido",
+        "criado_em",
+        "atualizado_em",
+    ]
+    fieldsets = (
+        (
+            "Identificação & Competência",
+            {
+                "fields": ("assessor", "competencia", "data_pagamento"),
+            },
+        ),
+        (
+            "Accanto Assessoria (PJ1)",
+            {
+                "fields": (
+                    "pj1_bruto",
+                    "pct_imposto_pj1",
+                    "pj1_imposto",
+                    "pj1_liquido",
+                ),
+            },
+        ),
+        (
+            "Accanto Serviços (PJ2)",
+            {
+                "fields": (
+                    "pj2_bruto",
+                    "pct_imposto_pj2",
+                    "pj2_imposto",
+                    "pj2_liquido",
+                ),
+            },
+        ),
+        (
+            "PLUS (PJ3)",
+            {
+                "fields": (
+                    "plus_bruto",
+                    "pct_imposto_plus",
+                    "plus_imposto",
+                    "plus_liquido",
+                ),
+            },
+        ),
+        (
+            "Deduções e Ajustes Líquidos Manuais",
+            {
+                "fields": (
+                    "plano_saude",
+                    "outros_creditos",
+                    "outros_debitos",
+                ),
+            },
+        ),
+        (
+            "Totais Consolidados",
+            {
+                "fields": (
+                    "total_bruto",
+                    "total_imposto",
+                    "total_liquido",
+                ),
+            },
+        ),
+        (
+            "Observações e Auditoria",
+            {
+                "fields": ("observacoes", "criado_em", "atualizado_em"),
+            },
+        ),
+    )

@@ -1,10 +1,12 @@
+import datetime
 from decimal import Decimal
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import LancamentoPJ2SeguroForm, LancamentoPJ2ConsorcioForm, LancamentoPlusForm, ImportarPJ1Form, ImportarPJ2Form
-from .models import LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus, LancamentoPJ1, LancamentoPJ2Previdencia
-from .services import importar_excel_pj1, importar_excel_pj2
+from apps.accounts.models import Assessor
+from .forms import LancamentoPJ2SeguroForm, LancamentoPJ2ConsorcioForm, LancamentoPlusForm, ImportarPJ1Form, ImportarPJ2Form, FechamentoMensalForm
+from .models import LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus, LancamentoPJ1, LancamentoPJ2Previdencia, FechamentoMensalAssessor
+from .services import importar_excel_pj1, importar_excel_pj2, gerar_ou_atualizar_fechamento
 from .decorators import cargo_requerido
 
 
@@ -16,6 +18,7 @@ def lancamentos_manuais(request):
     form_plus = LancamentoPlusForm(prefix="plus")
     form_pj1 = ImportarPJ1Form(prefix="pj1")
     form_pj2 = ImportarPJ2Form(prefix="pj2")
+    
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "salvar_seguro":
@@ -33,12 +36,14 @@ def lancamentos_manuais(request):
         elif action == "salvar_pj2":
             salvar_pj2(request, form_pj2)
             return redirect("finance:lancamentos_manuais")
+    
     # Busca os últimos lançamentos para exibição
     ultimos_seguros = LancamentoPJ2Seguro.objects.select_related("assessor__user").order_by("-id")[:5]
     ultimos_consorcio = LancamentoPJ2Consorcio.objects.select_related("assessor__user").order_by("-id")[:5]
     ultimos_plus = LancamentoPlus.objects.select_related("assessor__user").order_by("-id")[:5]
     ultimos_pj1 = LancamentoPJ1.objects.select_related("assessor__user").order_by("-id")[:5]
     ultimos_pj2 = LancamentoPJ2Previdencia.objects.select_related("assessor__user").order_by("-id")[:5]
+    
     context = {
         "form_seguro": form_seguro,
         "form_consorcio": form_consorcio,
@@ -51,6 +56,7 @@ def lancamentos_manuais(request):
         "ultimos_pj1": ultimos_pj1,
         "ultimos_pj2": ultimos_pj2,
     }
+    
     return render(request, "finance/lancamentos_manuais.html", context)
 
 
@@ -86,10 +92,11 @@ def salvar_plus(request, form_plus):
 
 
 def salvar_pj1(request, form_pj1):
-    form = ImportarPJ1Form(request.POST, request.FILES, prefix="pj1")
-    if form.is_valid():
-        data = form.cleaned_data["data"]
-        arquivo_pj1 = form.cleaned_data["arquivo_pj1"]
+    form_pj1 = ImportarPJ1Form(request.POST, request.FILES, prefix="pj1")
+    
+    if form_pj1.is_valid():
+        data = form_pj1.cleaned_data["data"]
+        arquivo_pj1 = form_pj1.cleaned_data["arquivo_pj1"]
         try:
             total = importar_excel_pj1(arquivo_pj1, data_competencia=data)
             if total > 0:
@@ -101,10 +108,11 @@ def salvar_pj1(request, form_pj1):
 
 
 def salvar_pj2(request, form_pj2):
-    form = ImportarPJ2Form(request.POST, request.FILES, prefix="pj2")
-    if form.is_valid():
-        data = form.cleaned_data["data"]
-        arquivo_pj2 = form.cleaned_data["arquivo_pj2"]
+    form_pj2 = ImportarPJ2Form(request.POST, request.FILES, prefix="pj2")
+    
+    if form_pj2.is_valid():
+        data = form_pj2.cleaned_data["data"]
+        arquivo_pj2 = form_pj2.cleaned_data["arquivo_pj2"]
         try:
             total = importar_excel_pj2(arquivo_pj2, data_competencia=data)
             if total > 0:
@@ -113,3 +121,64 @@ def salvar_pj2(request, form_pj2):
                 messages.warning(request, "O arquivo foi lido, mas nenhuma linha coincidiu com os assessores cadastrados.")
         except Exception as e:
             messages.error(request, f"Erro ao ler arquivo PJ2: {e}")
+
+
+@cargo_requerido('financeiro')
+@login_required
+def gestao_fechamento(request):
+    hoje = datetime.date.today()
+    mes = int(request.GET.get("mes", hoje.month))
+    ano = int(request.GET.get("ano", hoje.year))
+    assessor_id = request.GET.get("assessor_id")
+
+    assessores = Assessor.objects.select_related("user").filter(is_active=True).order_by("user__first_name")
+    
+    assessor_selecionado = None
+    fechamento = None
+    form = None
+
+    if assessor_id:
+        assessor_selecionado = Assessor.objects.filter(pk=assessor_id).first()
+        
+        if assessor_selecionado:
+            # Puxa os brutos das tabelas ou pega o existente
+            fechamento = gerar_ou_atualizar_fechamento(assessor_selecionado, ano, mes)
+
+            if request.method == "POST":
+                form = FechamentoMensalForm(request.POST, instance=fechamento)
+                if form.is_valid():
+                    form.save()
+                    messages.success(request, f"Fechamento de {assessor_selecionado} atualizado com sucesso!")
+                    return redirect(f"{request.path}?assessor_id={assessor_id}&mes={mes}&ano={ano}")
+            else:
+                form = FechamentoMensalForm(instance=fechamento)
+
+    meses = [
+        {"num": 1, "nome": "Janeiro"},
+        {"num": 2, "nome": "Fevereiro"}, 
+        {"num": 3, "nome": "Março"},
+        {"num": 4, "nome": "Abril"}, 
+        {"num": 5, "nome": "Maio"}, 
+        {"num": 6, "nome": "Junho"},
+        {"num": 7, "nome": "Julho"}, 
+        {"num": 8, "nome": "Agosto"}, 
+        {"num": 9, "nome": "Setembro"},
+        {"num": 10, "nome": "Outubro"}, 
+        {"num": 11, "nome": "Novembro"}, 
+        {"num": 12, "nome": "Dezembro"}
+    ]
+    
+    anos = [ano, ano - 1, ano - 2]
+
+    context = {
+        "assessores": assessores,
+        "assessor_selecionado": assessor_selecionado,
+        "fechamento": fechamento,
+        "form": form,
+        "mes_selecionado": mes,
+        "ano_selecionado": ano,
+        "meses": meses,
+        "anos": anos,
+    }
+    
+    return render(request, "finance/gestao_fechamento.html", context)

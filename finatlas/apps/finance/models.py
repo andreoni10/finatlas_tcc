@@ -1,5 +1,6 @@
 from django.db import models
 from apps.accounts.models import Assessor
+from decimal import Decimal
 
 
 class LancamentoPJ1(models.Model):
@@ -151,3 +152,91 @@ class LancamentoPlus(models.Model):
 
     def __str__(self):
         return f"Plus - {self.parceiro} - R$ {self.valor_liquido}"
+
+
+class FechamentoMensalAssessor(models.Model):
+    assessor = models.ForeignKey(
+        Assessor, on_delete=models.CASCADE, verbose_name="Assessor", related_name="fechamentos"
+    )
+    competencia = models.DateField("Competência (Mês/Ano)", db_index=True)
+    data_pagamento = models.DateField("Data do Pagamento", null=True, blank=True)
+
+    # Accanto Assessoria (PJ1)
+    pj1_bruto = models.DecimalField("PJ1 Valor Bruto", max_digits=12, decimal_places=2, default=0.00)
+    pct_imposto_pj1 = models.DecimalField("% Imposto PJ1", max_digits=5, decimal_places=2, default=14.66)
+    pj1_imposto = models.DecimalField("PJ1 Valor Imposto", max_digits=12, decimal_places=2, default=0.00)
+    pj1_liquido = models.DecimalField("PJ1 Valor Líquido", max_digits=12, decimal_places=2, default=0.00)
+
+    # Accanto Serviços (PJ2)
+    pj2_bruto = models.DecimalField("PJ2 Valor Bruto", max_digits=12, decimal_places=2, default=0.00)
+    pct_imposto_pj2 = models.DecimalField("% Imposto PJ2", max_digits=5, decimal_places=2, default=14.66)
+    pj2_imposto = models.DecimalField("PJ2 Valor Imposto", max_digits=12, decimal_places=2, default=0.00)
+    pj2_liquido = models.DecimalField("PJ2 Valor Líquido", max_digits=12, decimal_places=2, default=0.00)
+
+    # PLUS
+    plus_bruto = models.DecimalField("PLUS Valor Bruto", max_digits=12, decimal_places=2, default=0.00)
+    pct_imposto_plus = models.DecimalField("% Imposto PLUS", max_digits=5, decimal_places=2, default=6.00)
+    plus_imposto = models.DecimalField("PLUS Valor Imposto", max_digits=12, decimal_places=2, default=0.00)
+    plus_liquido = models.DecimalField("PLUS Valor Líquido", max_digits=12, decimal_places=2, default=0.00)
+
+    # Deduções e Ajustes Manuais
+    plano_saude = models.DecimalField("Plano de Saúde (Débito)", max_digits=12, decimal_places=2, default=0.00)
+    outros_creditos = models.DecimalField("Outros Créditos", max_digits=12, decimal_places=2, default=0.00)
+    outros_debitos = models.DecimalField("Outros Débitos", max_digits=12, decimal_places=2, default=0.00)
+
+    # Totais Gerais
+    total_bruto = models.DecimalField("Total Bruto", max_digits=12, decimal_places=2, default=0.00)
+    total_imposto = models.DecimalField("Total Imposto", max_digits=12, decimal_places=2, default=0.00)
+    total_liquido = models.DecimalField("Total Líquido Final", max_digits=12, decimal_places=2, default=0.00)
+
+    observacoes = models.TextField("Observações", blank=True, default="")
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Fechamento Mensal do Assessor"
+        verbose_name_plural = "Fechamentos Mensais dos Assessores"
+        unique_together = ("assessor", "competencia")
+        ordering = ["-competencia", "assessor"]
+
+    def __str__(self):
+        return f"Fechamento {self.assessor} - {self.competencia.strftime('%m/%Y')} - Líquido: R$ {self.total_liquido}"
+
+    def save(self, *args, **kwargs):
+        # Garante que todos os campos estejam no tipo Decimal
+        pj1_bruto = Decimal(str(self.pj1_bruto or 0))
+        pj2_bruto = Decimal(str(self.pj2_bruto or 0))
+        plus_bruto = Decimal(str(self.plus_bruto or 0))
+
+        pct_pj1 = Decimal(str(self.pct_imposto_pj1 or 0))
+        pct_pj2 = Decimal(str(self.pct_imposto_pj2 or 0))
+        pct_plus = Decimal(str(self.pct_imposto_plus or 0))
+
+        plano_saude = Decimal(str(self.plano_saude or 0))
+        outros_creditos = Decimal(str(self.outros_creditos or 0))
+        outros_debitos = Decimal(str(self.outros_debitos or 0))
+
+        cem = Decimal("100")
+
+        # 1. Calcula impostos e líquidos de cada empresa
+        self.pj1_imposto = (pj1_bruto * (pct_pj1 / cem)).quantize(Decimal("0.01"))
+        self.pj1_liquido = (pj1_bruto - self.pj1_imposto).quantize(Decimal("0.01"))
+
+        self.pj2_imposto = (pj2_bruto * (pct_pj2 / cem)).quantize(Decimal("0.01"))
+        self.pj2_liquido = (pj2_bruto - self.pj2_imposto).quantize(Decimal("0.01"))
+
+        self.plus_imposto = (plus_bruto * (pct_plus / cem)).quantize(Decimal("0.01"))
+        self.plus_liquido = (plus_bruto - self.plus_imposto).quantize(Decimal("0.01"))
+
+        # 2. Total Bruto e Total Imposto
+        self.total_bruto = pj1_bruto + pj2_bruto + plus_bruto
+        self.total_imposto = self.pj1_imposto + self.pj2_imposto + self.plus_imposto
+
+        # 3. Total Líquido Final
+        soma_liquidos = self.pj1_liquido + self.pj2_liquido + self.plus_liquido
+        self.total_liquido = (
+            soma_liquidos - plano_saude + outros_creditos - outros_debitos
+        ).quantize(Decimal("0.01"))
+
+        super().save(*args, **kwargs)
+
