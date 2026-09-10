@@ -44,6 +44,14 @@ class LancamentoPJ1(models.Model):
     def __str__(self):
         return f"PJ1 - {self.produto} - R$ {self.comissao_assessor}"
 
+    def save(self, *args, **kwargs):
+        if self.receita_liquida and self.repasse_assessor:
+            rec = Decimal(str(self.receita_liquida))
+            rep = Decimal(str(self.repasse_assessor))
+            self.comissao_assessor = (rec * (rep / Decimal("100"))).quantize(Decimal("0.01"))
+        super().save(*args, **kwargs)
+
+
 
 class LancamentoPJ2Previdencia(models.Model):
     assessor = models.ForeignKey(
@@ -105,6 +113,12 @@ class LancamentoPJ2Seguro(models.Model):
 
     def __str__(self):
         return f"Seguro {self.seguradora} - {self.cliente}"
+    
+    def save(self, *args, **kwargs):
+        bruta = Decimal(str(self.comissao_bruta_escritorio or 0))
+        self.comissao_assessor_60 = (bruta * Decimal("0.60")).quantize(Decimal("0.01"))
+        super().save(*args, **kwargs)
+
 
 
 class LancamentoPJ2Consorcio(models.Model):
@@ -126,6 +140,11 @@ class LancamentoPJ2Consorcio(models.Model):
 
     def __str__(self):
         return f"Seguro {self.administradora} - {self.cliente}"
+
+    def save(self, *args, **kwargs):
+        bruta = Decimal(str(self.comissao_bruta_escritorio or 0))
+        self.comissao_assessor_60 = (bruta * Decimal("0.60")).quantize(Decimal("0.01"))
+        super().save(*args, **kwargs)
 
 
 class LancamentoPlus(models.Model):
@@ -152,6 +171,14 @@ class LancamentoPlus(models.Model):
 
     def __str__(self):
         return f"Plus - {self.parceiro} - R$ {self.valor_liquido}"
+
+    def save(self, *args, **kwargs):
+        bruto = Decimal(str(self.valor_bruto or 0))
+        pct = Decimal(str(self.pct_imposto or 0))
+        self.valor_imposto = (bruto * (pct / Decimal("100"))).quantize(Decimal("0.01"))
+        self.valor_liquido = (bruto - self.valor_imposto).quantize(Decimal("0.01"))
+        super().save(*args, **kwargs)
+
 
 
 class FechamentoMensalAssessor(models.Model):

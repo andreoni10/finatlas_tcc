@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block body_title %} — Edição de Lançamentos{% endblock %}
+
+{% block body_block %}
+<div class="min-h-screen bg-slate-50 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Cabeçalho -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">Editar Lançamentos de Comissões</h1>
+        <p class="text-sm text-slate-500">Localize o assessor e altere qualquer item de comissão manualmente</p>
+      </div>
+      <a href="{% url 'dashboard:financeiro' %}" class="inline-flex items-center text-sm font-medium text-slate-600 hover:text-navy-900 bg-white border border-slate-200 px-4 py-2 rounded-lg shadow-sm">
+        &larr; Voltar ao Painel
+      </a>
+    </div>
+
+    <!-- Barra de Filtros -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
+      <form method="GET" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Assessor</label>
+          <select name="assessor_id" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800" required>
+            <option value="">-- Selecione o assessor --</option>
+            {% for a in assessores %}
+              <option value="{{ a.id }}" {% if assessor_selecionado and a.id == assessor_selecionado.id %}selected{% endif %}>
+                {{ a.user.get_full_name|default:a.user.username }} ({{ a.codigo_assessor }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Mês</label>
+          <select name="mes" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800">
+            {% for m in meses %}
+              <option value="{{ m.num }}" {% if m.num == mes_selecionado %}selected{% endif %}>{{ m.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Ano</label>
+          <select name="ano" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800">
+            {% for a in anos %}
+              <option value="{{ a }}" {% if a == ano_selecionado %}selected{% endif %}>{{ a }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="sm:col-span-4 flex justify-end">
+          <button type="submit" class="bg-navy-900 hover:bg-navy-800 text-white font-medium text-sm px-6 py-2 rounded-lg transition shadow">
+            Filtrar Comissões
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="p-4 mb-6 text-sm bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {% if assessor_selecionado %}
+      <!-- Navegação em Abas (PJ1, PJ2 e Plus) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div class="border-b border-slate-200 flex">
+          <button onclick="showTab('pj1')" id="tab-pj1" class="tab-btn px-6 py-4 font-semibold text-sm border-b-2 border-teal text-teal">
+            PJ1 ({{ pj1_itens|length }})
+          </button>
+          <button onclick="showTab('pj2')" id="tab-pj2" class="tab-btn px-6 py-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700">
+            PJ2 (Prev, Seguros & Consórcios)
+          </button>
+          <button onclick="showTab('plus')" id="tab-plus" class="tab-btn px-6 py-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700">
+            Plus ({{ plus_itens|length }})
+          </button>
+        </div>
+
+        <!-- Conteúdo Aba 1: PJ1 -->
+        <div id="content-pj1" class="tab-content p-6 overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
+              <tr>
+                <th class="p-3">Categoria</th>
+                <th class="p-3">Produto</th>
+                <th class="p-3">Cód. Cliente</th>
+                <th class="p-3">Receita Líquida</th>
+                <th class="p-3">% Repasse</th>
+                <th class="p-3">Comissão Assessor</th>
+                <th class="p-3 text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              {% for item in pj1_itens %}
+                <tr class="hover:bg-slate-50 transition">
+                  <td class="p-3">{{ item.categoria }}</td>
+                  <td class="p-3 font-medium text-slate-800">{{ item.produto }}</td>
+                  <td class="p-3 font-mono">{{ item.cod_cliente }}</td>
+                  <td class="p-3">R$ {{ item.receita_liquida|floatformat:2 }}</td>
+                  <td class="p-3">{{ item.repasse_assessor }}%</td>
+                  <td class="p-3 font-bold text-teal-dark">R$ {{ item.comissao_assessor|floatformat:2 }}</td>
+                  <td class="p-3 text-right">
+                    <a href="{% url 'finance:editar_item_lancamento' 'pj1' item.id %}" class="inline-flex items-center text-xs bg-teal hover:bg-teal-dark text-white px-3 py-1.5 rounded-lg transition shadow-sm">
+                      Editar
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="p-8 text-center text-slate-400">Nenhum lançamento PJ1 encontrado para este mês.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Conteúdo Aba 2: PJ2 -->
+        <div id="content-pj2" class="tab-content p-6 hidden">
+          
+          <!-- PJ2 Previdência -->
+          <div class="mb-8">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="font-bold text-slate-800 text-sm">Previdência (Planilha) — {{ pj2_prev_itens|length }} itens</h3>
+            </div>
+            <div class="overflow-x-auto border border-slate-100 rounded-xl">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
+                  <tr>
+                    <th class="p-3">Classificação</th>
+                    <th class="p-3">Categoria</th>
+                    <th class="p-3">Código Cliente</th>
+                    <th class="p-3">Receita Líquida</th>
+                    <th class="p-3">Comissão Assessor (60%)</th>
+                    <th class="p-3 text-right">Ação</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  {% for item in pj2_prev_itens %}
+                    <tr class="hover:bg-slate-50 transition">
+                      <td class="p-3 font-medium">{{ item.classificacao }}</td>
+                      <td class="p-3">{{ item.categoria }}</td>
+                      <td class="p-3 font-mono">{{ item.codigo_cliente }}</td>
+                      <td class="p-3">R$ {{ item.receita_liquida|floatformat:2 }}</td>
+                      <td class="p-3 font-bold text-teal-dark">R$ {{ item.comissao_assessor_60|floatformat:2 }}</td>
+                      <td class="p-3 text-right">
+                        <a href="{% url 'finance:editar_item_lancamento' 'pj2_prev' item.id %}" class="inline-flex items-center text-xs bg-teal hover:bg-teal-dark text-white px-3 py-1.5 rounded-lg transition shadow-sm">
+                          Editar
+                        </a>
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="6" class="p-6 text-center text-slate-400">Nenhum lançamento de Previdência neste mês.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PJ2 Seguros -->
+          <div class="mb-8">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="font-bold text-slate-800 text-sm">Seguros (Lançamentos Manuais) — {{ pj2_seg_itens|length }} itens</h3>
+            </div>
+            <div class="overflow-x-auto border border-slate-100 rounded-xl">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
+                  <tr>
+                    <th class="p-3">Seguradora</th>
+                    <th class="p-3">Cliente</th>
+                    <th class="p-3">Comissão Bruta Escritório</th>
+                    <th class="p-3">Parcela</th>
+                    <th class="p-3">Comissão Assessor (60%)</th>
+                    <th class="p-3 text-right">Ação</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  {% for item in pj2_seg_itens %}
+                    <tr class="hover:bg-slate-50 transition">
+                      <td class="p-3 font-semibold text-slate-800">{{ item.seguradora }}</td>
+                      <td class="p-3">{{ item.cliente }}</td>
+                      <td class="p-3">R$ {{ item.comissao_bruta_escritorio|floatformat:2 }}</td>
+                      <td class="p-3">{{ item.parcela }}</td>
+                      <td class="p-3 font-bold text-teal-dark">R$ {{ item.comissao_assessor_60|floatformat:2 }}</td>
+                      <td class="p-3 text-right">
+                        <a href="{% url 'finance:editar_item_lancamento' 'pj2_seg' item.id %}" class="inline-flex items-center text-xs bg-teal hover:bg-teal-dark text-white px-3 py-1.5 rounded-lg transition shadow-sm">
+                          Editar
+                        </a>
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="6" class="p-6 text-center text-slate-400">Nenhum lançamento de Seguro neste mês.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PJ2 Consórcios -->
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="font-bold text-slate-800 text-sm">Consórcio (Lançamentos Manuais) — {{ pj2_con_itens|length }} itens</h3>
+            </div>
+            <div class="overflow-x-auto border border-slate-100 rounded-xl">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
+                  <tr>
+                    <th class="p-3">Administradora</th>
+                    <th class="p-3">Cliente</th>
+                    <th class="p-3">Comissão Bruta Escritório</th>
+                    <th class="p-3">Parcela</th>
+                    <th class="p-3">Comissão Assessor (60%)</th>
+                    <th class="p-3 text-right">Ação</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  {% for item in pj2_con_itens %}
+                    <tr class="hover:bg-slate-50 transition">
+                      <td class="p-3 font-semibold text-slate-800">{{ item.administradora }}</td>
+                      <td class="p-3">{{ item.cliente }}</td>
+                      <td class="p-3">R$ {{ item.comissao_bruta_escritorio|floatformat:2 }}</td>
+                      <td class="p-3">{{ item.parcela }}</td>
+                      <td class="p-3 font-bold text-teal-dark">R$ {{ item.comissao_assessor_60|floatformat:2 }}</td>
+                      <td class="p-3 text-right">
+                        <a href="{% url 'finance:editar_item_lancamento' 'pj2_con' item.id %}" class="inline-flex items-center text-xs bg-teal hover:bg-teal-dark text-white px-3 py-1.5 rounded-lg transition shadow-sm">
+                          Editar
+                        </a>
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="6" class="p-6 text-center text-slate-400">Nenhum lançamento de Consórcio neste mês.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Conteúdo Aba 3: Plus -->
+        <div id="content-plus" class="tab-content p-6 hidden overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
+              <tr>
+                <th class="p-3">Parceiro</th>
+                <th class="p-3">Produto</th>
+                <th class="p-3">Valor Bruto</th>
+                <th class="p-3">% Imposto</th>
+                <th class="p-3">Valor Imposto</th>
+                <th class="p-3">Valor Líquido</th>
+                <th class="p-3 text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              {% for item in plus_itens %}
+                <tr class="hover:bg-slate-50 transition">
+                  <td class="p-3 font-semibold text-slate-800">{{ item.parceiro }}</td>
+                  <td class="p-3">{{ item.produto }}</td>
+                  <td class="p-3">R$ {{ item.valor_bruto|floatformat:2 }}</td>
+                  <td class="p-3">{{ item.pct_imposto }}%</td>
+                  <td class="p-3 text-red-500">- R$ {{ item.valor_imposto|floatformat:2 }}</td>
+                  <td class="p-3 font-bold text-teal-dark">R$ {{ item.valor_liquido|floatformat:2 }}</td>
+                  <td class="p-3 text-right">
+                    <a href="{% url 'finance:editar_item_lancamento' 'plus' item.id %}" class="inline-flex items-center text-xs bg-teal hover:bg-teal-dark text-white px-3 py-1.5 rounded-lg transition shadow-sm">
+                      Editar
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="p-8 text-center text-slate-400">Nenhum lançamento da Plus encontrado para este mês.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Script para alternar as abas -->
+<script>
+  function showTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(el => {
+      el.classList.remove('border-teal', 'text-teal');
+      el.classList.add('border-transparent', 'text-slate-500');
+    });
+
+    const targetContent = document.getElementById('content-' + tabName);
+    if (targetContent) {
+      targetContent.classList.remove('hidden');
+    }
+    const activeBtn = document.getElementById('tab-' + tabName);
+    if (activeBtn) {
+      activeBtn.classList.remove('border-transparent', 'text-slate-500');
+      activeBtn.classList.add('border-teal', 'text-teal');
+    }
+  }
+</script>
+{% endblock %}

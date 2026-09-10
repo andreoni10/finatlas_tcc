@@ -1,11 +1,11 @@
 import datetime
 from decimal import Decimal
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from apps.accounts.models import Assessor
-from .forms import LancamentoPJ2SeguroForm, LancamentoPJ2ConsorcioForm, LancamentoPlusForm, ImportarPJ1Form, ImportarPJ2Form, FechamentoMensalForm
-from .models import LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus, LancamentoPJ1, LancamentoPJ2Previdencia, FechamentoMensalAssessor
+from .forms import LancamentoPJ1EditForm, LancamentoPJ2PrevidenciaEditForm,LancamentoPJ2SeguroForm, LancamentoPJ2ConsorcioForm, LancamentoPlusForm, ImportarPJ1Form, ImportarPJ2Form, FechamentoMensalForm
+from .models import LancamentoPJ1, LancamentoPJ2Previdencia, LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus, LancamentoPJ1, LancamentoPJ2Previdencia, FechamentoMensalAssessor
 from .services import importar_excel_pj1, importar_excel_pj2, gerar_ou_atualizar_fechamento
 from .decorators import cargo_requerido
 
@@ -205,3 +205,98 @@ def gestao_fechamento(request):
     }
     
     return render(request, "finance/gestao_fechamento.html", context)
+
+
+@cargo_requerido("financeiro")
+@login_required
+def listar_lancamentos_para_edicao(request):
+    hoje = datetime.date.today()
+    mes = int(request.GET.get("mes", hoje.month))
+    ano = int(request.GET.get("ano", hoje.year))
+    assessor_id = request.GET.get("assessor_id")
+    assessores = Assessor.objects.select_related("user").filter(is_active=True).order_by("user__first_name")
+    assessor_selecionado = None
+    pj1_itens = []
+    pj2_prev_itens = []
+    pj2_seg_itens = []
+    pj2_con_itens = []
+    plus_itens = []
+    if assessor_id:
+        assessor_selecionado = Assessor.objects.filter(pk=assessor_id).first()
+        if assessor_selecionado:
+            filtro = {"assessor": assessor_selecionado, "data__year": ano, "data__month": mes}
+            pj1_itens = LancamentoPJ1.objects.filter(**filtro)
+            pj2_prev_itens = LancamentoPJ2Previdencia.objects.filter(**filtro)
+            pj2_seg_itens = LancamentoPJ2Seguro.objects.filter(**filtro)
+            pj2_con_itens = LancamentoPJ2Consorcio.objects.filter(**filtro)
+            plus_itens = LancamentoPlus.objects.filter(**filtro)
+    # Anos disponíveis para filtro (recente ao mais antigo)
+    anos_comissao = set()
+    modelos = [LancamentoPJ1, LancamentoPJ2Previdencia, LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus]
+    for model in modelos:
+        qs = model.objects.filter(assessor=assessor_selecionado) if assessor_selecionado else model.objects.all()
+        anos_comissao.update(filter(None, qs.values_list("data__year", flat=True).distinct()))
+    anos_comissao.add(hoje.year)
+    anos = list(range(max(anos_comissao), min(anos_comissao) - 1, -1))
+    meses = [
+        {"num": 1, "nome": "Janeiro"}, {"num": 2, "nome": "Fevereiro"},
+        {"num": 3, "nome": "Março"}, {"num": 4, "nome": "Abril"},
+        {"num": 5, "nome": "Maio"}, {"num": 6, "nome": "Junho"},
+        {"num": 7, "nome": "Julho"}, {"num": 8, "nome": "Agosto"},
+        {"num": 9, "nome": "Setembro"}, {"num": 10, "nome": "Outubro"},
+        {"num": 11, "nome": "Novembro"}, {"num": 12, "nome": "Dezembro"}
+    ]
+    context = {
+        "assessores": assessores,
+        "assessor_selecionado": assessor_selecionado,
+        "mes_selecionado": mes,
+        "ano_selecionado": ano,
+        "meses": meses,
+        "anos": anos,
+        "pj1_itens": pj1_itens,
+        "pj2_prev_itens": pj2_prev_itens,
+        "pj2_seg_itens": pj2_seg_itens,
+        "pj2_con_itens": pj2_con_itens,
+        "plus_itens": plus_itens,
+    }
+    return render(request, "finance/editar_lancamentos_list.html", context)
+
+
+@cargo_requerido("financeiro")
+@login_required
+def editar_item_lancamento(request, tipo, pk):
+    # Mapeamento do tipo para Modelo, Form e Nome Legível
+    MAPA_TIPOS = {
+        "pj1": (LancamentoPJ1, LancamentoPJ1EditForm, "PJ1"),
+        "pj2_prev": (LancamentoPJ2Previdencia, LancamentoPJ2PrevidenciaEditForm, "PJ2 Previdência"),
+        "pj2_seg": (LancamentoPJ2Seguro, LancamentoPJ2SeguroForm, "PJ2 Seguro"),
+        "pj2_con": (LancamentoPJ2Consorcio, LancamentoPJ2ConsorcioForm, "PJ2 Consórcio"),
+        "plus": (LancamentoPlus, LancamentoPlusForm, "Plus"),
+    }
+    if tipo not in MAPA_TIPOS:
+        messages.error(request, "Tipo de lançamento inválido.")
+        return redirect("finance:editar_lancamento")
+    model_class, form_class, label_tipo = MAPA_TIPOS[tipo]
+    item = get_object_or_404(model_class, pk=pk)
+    if request.method == "POST":
+        form = form_class(request.POST, instance=item)
+        if form.is_valid():
+            instancia_salva = form.save()
+            
+            # Recalcula o fechamento oficial do assessor para o mês e ano do lançamento
+            gerar_ou_atualizar_fechamento(
+                instancia_salva.assessor,
+                instancia_salva.data.year,
+                instancia_salva.data.month
+            )
+            messages.success(request, f"Lançamento {label_tipo} atualizado com sucesso e fechamento recalculado!")
+            return redirect(f"/financeiro/editar-lancamentos/?assessor_id={instancia_salva.assessor.id}&mes={instancia_salva.data.month}&ano={instancia_salva.data.year}")
+    else:
+        form = form_class(instance=item)
+    context = {
+        "form": form,
+        "item": item,
+        "tipo": tipo,
+        "label_tipo": label_tipo,
+    }
+    return render(request, "finance/editar_item_form.html", context)

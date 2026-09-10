@@ -1,5 +1,41 @@
 from django import forms
-from .models import LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus, FechamentoMensalAssessor
+from .models import LancamentoPJ1, LancamentoPJ2Previdencia, LancamentoPJ2Seguro, LancamentoPJ2Consorcio, LancamentoPlus, FechamentoMensalAssessor
+
+class LancamentoPJ1EditForm(forms.ModelForm):
+    class Meta:
+        model = LancamentoPJ1
+        fields = [
+            "data", "categoria", "produto", "cod_cliente",
+            "receita", "receita_liquida", "repasse_assessor", "comissao_assessor"
+        ]
+        widgets = {
+            "data": forms.DateInput(attrs={"type": "date"}),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({
+                "class": "w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal focus:border-teal outline-none text-sm text-slate-800"
+            })
+
+            
+class LancamentoPJ2PrevidenciaEditForm(forms.ModelForm):
+    class Meta:
+        model = LancamentoPJ2Previdencia
+        fields = [
+            "data", "classificacao", "categoria", "codigo_cliente",
+            "receita_bruta", "receita_liquida", "comissao_assessor_60"
+        ]
+        widgets = {
+            "data": forms.DateInput(attrs={"type": "date"}),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({
+                "class": "w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal focus:border-teal outline-none text-sm text-slate-800"
+            })
+
 
 
 class LancamentoPJ2SeguroForm(forms.ModelForm):
@@ -130,6 +166,7 @@ class FechamentoMensalForm(forms.ModelForm):
             "data_pagamento": forms.DateInput(attrs={"type": "date"}),
             "observacoes": forms.Textarea(attrs={"rows": 3, "placeholder": "Observações sobre o fechamento..."}),
         }
+        
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
