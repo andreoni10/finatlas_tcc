@@ -168,7 +168,30 @@ def gestao_fechamento(request):
         {"num": 12, "nome": "Dezembro"}
     ]
     
-    anos = [ano, ano - 1, ano - 2]
+    # Busca todos os anos com lançamentos
+    anos_comissao = set()
+    modelos = [
+        LancamentoPJ1,
+        LancamentoPJ2Previdencia,
+        LancamentoPJ2Seguro,
+        LancamentoPJ2Consorcio,
+        LancamentoPlus,
+    ]
+    
+    for model in modelos:
+        qs = model.objects.filter(assessor=assessor_selecionado) if assessor_selecionado else model.objects.all()
+        anos_encontrados = qs.values_list("data__year", flat=True).distinct()
+        anos_comissao.update(filter(None, anos_encontrados))
+
+    # Garante o ano atual na lista para sempre poder consultar o ano corrente
+    anos_comissao.add(hoje.year)
+
+    # Pega do ano mais recente (max) ao mais antigo (min)
+    ano_recente = max(anos_comissao)
+    ano_antigo = min(anos_comissao)
+
+    # Gera a lista em ordem decrescente (ex: de 2026 até 2021)
+    anos = list(range(ano_recente, ano_antigo - 1, -1))
 
     context = {
         "assessores": assessores,

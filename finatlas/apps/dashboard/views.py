@@ -63,7 +63,7 @@ def advisor_dashboard(request):
         {"num": 12, "nome": "Dezembro"},
     ]
     
-    # 1. Busca todos os anos com lançamentos para o assessor
+    # Busca todos os anos com lançamentos para o assessor
     anos_comissao = set()
     modelos = [
         LancamentoPJ1,
