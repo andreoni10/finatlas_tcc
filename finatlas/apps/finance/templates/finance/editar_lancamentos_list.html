@@ -84,24 +84,28 @@
           <table class="w-full text-left text-xs text-slate-600">
             <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b">
               <tr>
-                <th class="p-3">Categoria</th>
                 <th class="p-3">Produto</th>
+                <th class="p-3">Categoria</th>
                 <th class="p-3">Cód. Cliente</th>
                 <th class="p-3">Receita Líquida</th>
-                <th class="p-3">% Repasse</th>
-                <th class="p-3">Comissão Assessor</th>
+                <th class="p-3">Comissão Bruta Escritório</th>
+                <th class="p-3">Comissão Assessor (60%)</th>
                 <th class="p-3 text-right">Ação</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
               {% for item in pj1_itens %}
                 <tr class="hover:bg-slate-50 transition">
-                  <td class="p-3">{{ item.categoria }}</td>
                   <td class="p-3 font-medium text-slate-800">{{ item.produto }}</td>
+                  <td class="p-3">{{ item.categoria }}</td>
                   <td class="p-3 font-mono">{{ item.cod_cliente }}</td>
                   <td class="p-3">R$ {{ item.receita_liquida|floatformat:2 }}</td>
-                  <td class="p-3">{{ item.repasse_assessor }}%</td>
-                  <td class="p-3 font-bold text-teal-dark">R$ {{ item.comissao_assessor|floatformat:2 }}</td>
+                  <td class="p-3">R$ {{ item.comissao_bruta_escritorio }}</td>
+                  {% if item.comissao_assessor >= 0 %}
+                    <td class="p-3 font-bold text-teal-dark">R$ {{ item.comissao_assessor|floatformat:2 }}</td>
+                  {% else %}
+                    <td class="p-3 font-bold text-rose-600">R$ {{ item.comissao_assessor|floatformat:2 }}</td>
+                  {% endif %}
                   <td class="p-3 text-right">
                     <a href="{% url 'finance:editar_item_lancamento' 'pj1' item.id %}" class="inline-flex items-center text-xs bg-teal hover:bg-teal-dark text-white px-3 py-1.5 rounded-lg transition shadow-sm">
                       Editar

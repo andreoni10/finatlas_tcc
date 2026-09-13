@@ -76,6 +76,12 @@ def importar_excel_pj1(arquivo_excel, data_competencia=None):
         if not data_final and pd.notna(row.get("Data")):
             data_final = pd.to_datetime(row.get("Data")).date()
 
+        comissao_bruta_escritorio = limpar_decimal(row.get("Comissão Bruta (R$) Escritório"))
+        comissao_assessor = limpar_decimal(row.get("Comissão (R$) Assessor Direto"))
+
+        if comissao_assessor == 0 and comissao_bruta_escritorio != 0:
+            comissao_assessor = round(comissao_bruta_escritorio * 0.6, 2)
+
         lancamento = LancamentoPJ1(
             assessor=assessor_obj,
             data=data_final,
@@ -89,9 +95,9 @@ def importar_excel_pj1(arquivo_excel, data_competencia=None):
             receita=limpar_decimal(row.get("Receita (R$)")),
             receita_liquida=limpar_decimal(row.get("Receita Líquida (R$)")),
             repasse_escritorio=limpar_decimal(row.get("Repasse (%) Escritório")),
-            comissao_bruta_escritorio=limpar_decimal(row.get("Comissão Bruta (R$) Escritório")),
+            comissao_bruta_escritorio=comissao_bruta_escritorio,
             repasse_assessor=limpar_decimal(row.get("Repasse (%) Assessor Direto")),
-            comissao_assessor=limpar_decimal(row.get("Comissão (R$) Assessor Direto")),
+            comissao_assessor=comissao_assessor,
         )
 
         lancamentos_para_criar.append(lancamento)

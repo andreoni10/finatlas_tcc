@@ -167,7 +167,7 @@
                 </tr>
                 <tr>
                   <td class="p-3 font-bold text-slate-800">PLUS</td>
-                  <td class="p-3"><span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px]">PJ3 / Plus</span></td>
+                  <td class="p-3"><span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px]">PJ3</span></td>
                   <td class="p-3 text-right">R$ {{ fechamento.plus_bruto|floatformat:2 }}</td>
                   <td class="p-3 text-center">{{ fechamento.pct_imposto_plus }}%</td>
                   <td class="p-3 text-right text-slate-500">R$ {{ fechamento.plus_imposto|floatformat:2 }}</td>
@@ -204,9 +204,15 @@
                   <td class="p-3 text-right">R$ {{ fechamento.total_bruto|floatformat:2 }}</td>
                   <td class="p-3 text-center text-slate-400">-</td>
                   <td class="p-3 text-right text-slate-600">R$ {{ fechamento.total_imposto|floatformat:2 }}</td>
+                  {% if fechamento.total_liquido >= 0 %}
                   <td class="p-3 text-right font-extrabold text-sm text-teal-dark bg-teal-50">
                     R$ {{ fechamento.total_liquido|floatformat:2 }}
                   </td>
+                  {% else %}
+                  <td class="p-3 text-right font-extrabold text-sm text-red-600 bg-red-50">
+                    R$ {{ fechamento.total_liquido|floatformat:2 }}
+                  </td>
+                  {% endif %}
                 </tr>
               </tfoot>
             </table>
