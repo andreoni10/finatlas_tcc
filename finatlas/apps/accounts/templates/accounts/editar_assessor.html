@@ -61,14 +61,36 @@
           <label class="text-sm text-slate-700 font-medium">Assessor Ativo no Sistema</label>
         </div>
 
-        <div class="pt-4 flex items-center space-x-3">
-          <button type="submit" class="flex-1 py-2.5 px-4 bg-teal hover:bg-teal-dark text-white font-medium text-sm rounded-lg shadow transition">
-            Salvar Alterações
-          </button>
-          <a href="{% url 'accounts:listar_assessores' %}" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition">
-            Cancelar
-          </a>
+                <!-- Botões de Ação do Formulário de Edição -->
+        <div class="pt-4 flex items-center justify-between border-t border-slate-100">
+          <div class="flex items-center space-x-3">
+            <button type="submit" class="py-2.5 px-4 bg-teal hover:bg-teal-dark text-white font-medium text-sm rounded-lg shadow transition">
+              Salvar Alterações
+            </button>
+            <a href="{% url 'accounts:listar_assessores' %}" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition">
+              Cancelar
+            </a>
+          </div>
         </div>
+      </form>
+      
+      <!-- Zona de Exclusão (Fora do form principal) -->
+      <div class="mt-6 pt-6 border-t border-rose-100 flex items-center justify-between">
+        <div>
+          <h4 class="text-xs font-bold text-rose-800 uppercase tracking-wider">Atenção!</h4>
+          <p class="text-xs text-slate-500">Excluir este assessor apagará também seu acesso e comissões vinculadas.</p>
+        </div>
+        
+        <form method="POST" action="{% url 'accounts:excluir_assessor' assessor.pk %}" onsubmit="return confirm('ATENÇÃO:\n\nTem certeza absoluta que deseja excluir o assessor {{ assessor.user.get_full_name|default:assessor.user.username }}?\n\nESTA AÇÃO É IRREVERSÍVEL!');">
+          {% csrf_token %}
+          <button type="submit" class="py-2 px-3.5 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 text-xs font-semibold rounded-lg transition shadow-sm">
+            Excluir Assessor
+          </button>
+        </form>
+      </div>
+
+    </div>
+
       </form>
     </div>
 

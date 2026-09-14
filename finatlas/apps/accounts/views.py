@@ -73,3 +73,18 @@ def editar_assessor(request, pk):
     context = {"form": form, "assessor": assessor}
 
     return render(request, "accounts/editar_assessor.html", context)
+
+
+@cargo_requerido('financeiro')
+@login_required
+def excluir_assessor(request, pk):
+    assessor = get_object_or_404(Assessor.objects.select_related("user"), pk=pk)
+    if request.method == "POST":
+        user = assessor.user
+        nome = user.get_full_name() or user.username
+        
+        # Ao deletar o CustomUser, o Assessor (e em cascata suas comissões) é deletado
+        user.delete()
+        messages.success(request, f"Assessor {nome} foi excluído com sucesso!")
+        return redirect("accounts:listar_assessores")
+    return redirect("accounts:editar_assessor", pk=pk)
