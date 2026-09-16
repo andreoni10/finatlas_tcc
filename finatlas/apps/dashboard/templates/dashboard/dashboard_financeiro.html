@@ -1,19 +1,653 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block body_title %} — Dashboard do Financeiro{% endblock %}
+{% block body_title %} — Dashboard Executivo do Financeiro{% endblock %}
+
+{% block extra_head %}
+<!-- ApexCharts CDN para os gráficos modernos com Tailwind Design System -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+{% endblock %}
 
 {% block body_block %}
-<h1 class="text-2xl font-bold">Dashboard do Financeiro</h1>
-<a href="{% url 'accounts:logout' %}"
-    class="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium transition hover:bg-white/10">Sair</a>
-<a href="{% url 'finance:lancamentos_manuais' %}"
-    class="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium transition hover:bg-white/10">Lancamentos</a>
-<a href="{% url 'finance:editar_lancamento' %}"
-    class="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium transition hover:bg-white/10">Editar Lançamento</a>
-<a href="{% url 'finance:gestao_fechamento' %}"
-    class="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium transition hover:bg-white/10">Fechamento Mensal</a>
-<a href="{% url 'accounts:listar_assessores' %}"
-    class="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium transition hover:bg-white/10">Gestão de Assessores</a>
+<div class="min-h-screen bg-slate-50 text-slate-800">
 
+  <!-- Barra Superior de Navegação -->
+  <header class="bg-navy-900 text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap justify-between items-center gap-3">
+      
+      <!-- Marca & Perfil -->
+      <div class="flex items-center space-x-3">
+        <a href="{% url 'dashboard:financeiro' %}" class="flex items-center space-x-2">
+          <span class="text-xl font-black tracking-wider text-teal">FinAtlas</span>
+        </a>
+        <span class="text-xs bg-teal/20 text-teal-light px-2.5 py-0.5 rounded-full border border-teal/30 font-semibold uppercase tracking-wider">
+          Financeiro
+        </span>
+      </div>
+
+      <!-- Menu de Ações Rápidas -->
+      <nav class="flex flex-wrap items-center gap-2 text-xs font-medium">
+        <a href="{% url 'finance:lancamentos_manuais' %}"
+           class="px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-200 hover:text-white transition border border-navy-700 flex items-center gap-1.5">
+          <i class="fa-solid fa-file-import text-teal"></i>
+          <span>Lançamentos</span>
+        </a>
+        <a href="{% url 'finance:editar_lancamento' %}"
+           class="px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-200 hover:text-white transition border border-navy-700 flex items-center gap-1.5">
+          <i class="fa-solid fa-pen-to-square text-teal"></i>
+          <span>Editar Lançamento</span>
+        </a>
+        <a href="{% url 'finance:gestao_fechamento' %}"
+           class="px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-200 hover:text-white transition border border-navy-700 flex items-center gap-1.5">
+          <i class="fa-solid fa-calendar-check text-teal"></i>
+          <span>Fechamento Mensal</span>
+        </a>
+        <a href="{% url 'accounts:listar_assessores' %}"
+           class="px-3 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-200 hover:text-white transition border border-navy-700 flex items-center gap-1.5">
+          <i class="fa-solid fa-users text-teal"></i>
+          <span>Gestão de Assessores</span>
+        </a>
+        <a href="{% url 'accounts:logout' %}"
+           class="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-red-200 border border-red-500/30 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Sair</span>
+        </a>
+      </nav>
+
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Topo: Título da Página & Seletor de Ano -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+          <span>Visão Executiva do Escritório</span>
+          <span class="text-sm font-semibold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-dark border border-teal-100">
+            Ano {{ ano_selecionado }}
+          </span>
+        </h1>
+        <p class="text-sm text-slate-500 mt-1">
+          Acompanhamento consolidado do faturamento anual das empresas e repasse de comissões por assessor.
+        </p>
+      </div>
+
+      <!-- Formulário de Filtro de Competência (Ano e Mês) -->
+      <form method="GET" class="flex flex-wrap items-center gap-2 self-stretch sm:self-auto">
+        <div class="relative flex-1 sm:flex-initial">
+          <label for="id_mes" class="sr-only">Mês</label>
+          <select id="id_mes" name="mes"
+                  class="w-full sm:w-48 text-sm font-medium rounded-xl border-slate-300 bg-slate-50 text-slate-700 focus:bg-white focus:border-teal focus:ring-2 focus:ring-teal/20 transition py-2 pl-3 pr-8">
+            <option value="">Ano Completo (Consolidado)</option>
+            {% for m in meses_filtro %}
+              <option value="{{ m.num }}" {% if m.num == mes_selecionado %}selected{% endif %}>{{ m.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="relative flex-1 sm:flex-initial">
+          <label for="id_ano" class="sr-only">Ano</label>
+          <select id="id_ano" name="ano"
+                  class="w-full sm:w-28 text-sm font-medium rounded-xl border-slate-300 bg-slate-50 text-slate-700 focus:bg-white focus:border-teal focus:ring-2 focus:ring-teal/20 transition py-2 pl-3 pr-8">
+            {% for a in anos_disponiveis %}
+              <option value="{{ a }}" {% if a == ano_selecionado %}selected{% endif %}>{{ a }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit"
+                class="bg-navy-900 hover:bg-navy-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-sm hover:shadow transition flex items-center gap-1.5">
+          <i class="fa-solid fa-filter"></i>
+          <span>Filtrar</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Cards de Métricas Principais (KPIs Anuais) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      
+      <!-- Card 1: Faturamento Total Anual -->
+      <div class="sm:col-span-2 lg:col-span-2 bg-gradient-to-br from-navy-900 via-navy-800 to-navy-950 text-white p-6 rounded-2xl shadow-sm border border-navy-700/60 relative overflow-hidden flex flex-col justify-between">
+        <div class="absolute -right-6 -bottom-6 opacity-10 text-white text-9xl pointer-events-none">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs uppercase tracking-wider font-semibold text-teal-light">
+              Faturamento Bruto Total
+            </span>
+            <span class="text-xs bg-teal/20 text-teal-light px-2 py-0.5 rounded-full border border-teal/30">
+              Ano {{ ano_selecionado }}
+            </span>
+          </div>
+          <div class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mt-1">
+            R$ {{ total_anual_faturamento|floatformat:2 }}
+          </div>
+        </div>
+
+        <div class="pt-4 mt-4 border-t border-navy-700/80 flex items-center justify-between text-xs text-slate-300">
+          <div>
+            <span>Comissões Repassadas:</span>
+            <strong class="text-rose-300 font-mono"> R$ {{ total_anual_comissoes|floatformat:2 }}</strong>
+          </div>
+          <div>
+            <span>Retenção Bruta:</span>
+            <strong class="text-emerald-300 font-mono"> R$ {{ retencao_escritorio|floatformat:2 }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: PJ1 (Accanto) -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-teal/50 transition group">
+        <div>
+          <div class="flex items-center justify-between text-slate-500 mb-2">
+            <span class="text-xs uppercase font-semibold tracking-wider text-slate-500">PJ1 (Accanto)</span>
+            <div class="w-8 h-8 rounded-lg bg-navy-50 text-navy-900 flex items-center justify-center text-sm group-hover:bg-navy-900 group-hover:text-white transition">
+              <i class="fa-solid fa-arrow-trend-up"></i>
+            </div>
+          </div>
+          <div class="text-xl font-bold text-slate-900 font-mono mt-1">
+            R$ {{ total_anual_pj1|floatformat:2 }}
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <span>Participação</span>
+          <strong class="font-semibold text-slate-700">
+            {% if total_anual_faturamento > 0 %}
+              {% widthratio total_anual_pj1 total_anual_faturamento 100 %}%
+            {% else %}
+              0%
+            {% endif %}
+          </strong>
+        </div>
+      </div>
+
+      <!-- Card 3: PJ2 (Prev, Seguros, Consórcio) -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-teal/50 transition group">
+        <div>
+          <div class="flex items-center justify-between text-slate-500 mb-2">
+            <span class="text-xs uppercase font-semibold tracking-wider text-slate-500">PJ2 (Prev, Seg, Con)</span>
+            <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-dark flex items-center justify-center text-sm group-hover:bg-teal group-hover:text-white transition">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+          </div>
+          <div class="text-xl font-bold text-slate-900 font-mono mt-1">
+            R$ {{ total_anual_pj2|floatformat:2 }}
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <span>Participação</span>
+          <strong class="font-semibold text-slate-700">
+            {% if total_anual_faturamento > 0 %}
+              {% widthratio total_anual_pj2 total_anual_faturamento 100 %}%
+            {% else %}
+              0%
+            {% endif %}
+          </strong>
+        </div>
+      </div>
+
+      <!-- Card 4: Plus (Parceiros) -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-amber-400/50 transition group">
+        <div>
+          <div class="flex items-center justify-between text-slate-500 mb-2">
+            <span class="text-xs uppercase font-semibold tracking-wider text-slate-500">Plus (Parceiros)</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm group-hover:bg-amber-500 group-hover:text-white transition">
+              <i class="fa-solid fa-handshake"></i>
+            </div>
+          </div>
+          <div class="text-xl font-bold text-slate-900 font-mono mt-1">
+            R$ {{ total_anual_plus|floatformat:2 }}
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <span>Participação</span>
+          <strong class="font-semibold text-slate-700">
+            {% if total_anual_faturamento > 0 %}
+              {% widthratio total_anual_plus total_anual_faturamento 100 %}%
+            {% else %}
+              0%
+            {% endif %}
+          </strong>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SEÇÃO 1: Faturamento do Escritório (Gráficos) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Gráfico de Evolução Mensal do Faturamento -->
+      <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2 mb-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Evolução Mensal do Faturamento</h2>
+            <p class="text-xs text-slate-500">Comparativo das receitas brutas mês a mês de PJ1, PJ2 e Plus em {{ ano_selecionado }}</p>
+          </div>
+          <div class="flex items-center space-x-3 text-xs">
+            <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#121953]"></span> PJ1</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#00b9c2]"></span> PJ2</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#f59e0b]"></span> Plus</span>
+          </div>
+        </div>
+        <div id="chart-faturamento-mensal" class="w-full min-h-[320px]"></div>
+      </div>
+
+      <!-- Gráfico Donut de Distribuição do Faturamento -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div class="pb-4 border-b border-slate-100 mb-4">
+          <h2 class="text-base font-bold text-slate-900">Composição do Faturamento</h2>
+          <p class="text-xs text-slate-500">Distribuição anual entre as 3 empresas</p>
+        </div>
+        <div class="flex-1 flex items-center justify-center min-h-[260px]">
+          <div id="chart-composicao-faturamento" class="w-full"></div>
+        </div>
+        <div class="pt-4 border-t border-slate-100 grid grid-cols-3 gap-2 text-center text-xs">
+          <div>
+            <span class="text-slate-400 block text-[10px] uppercase font-bold">PJ1</span>
+            <span class="font-bold text-navy-900">R$ {{ total_anual_pj1|floatformat:0 }}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px] uppercase font-bold">PJ2</span>
+            <span class="font-bold text-teal-dark">R$ {{ total_anual_pj2|floatformat:0 }}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px] uppercase font-bold">Plus</span>
+            <span class="font-bold text-amber-600">R$ {{ total_anual_plus|floatformat:0 }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SEÇÃO 2: Comissionamento por Assessor (Gráficos) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Gráfico de Ranking dos Assessores -->
+      <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2 mb-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Ranking Anual de Comissionamento por Assessor</h2>
+            <p class="text-xs text-slate-500">Assessores com maior volume de comissões acumuladas em {{ ano_selecionado }}</p>
+          </div>
+          <span class="text-xs font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">
+            Top 10 Assessores
+          </span>
+        </div>
+        <div id="chart-ranking-assessores" class="w-full min-h-[320px]"></div>
+      </div>
+
+      <!-- Gráfico da Evolução do Comissionamento Mensal Total -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div class="pb-4 border-b border-slate-100 mb-4">
+          <h2 class="text-base font-bold text-slate-900">Fluxo Mensal de Comissões</h2>
+          <p class="text-xs text-slate-500">Total repassado aos assessores a cada mês</p>
+        </div>
+        <div id="chart-comissao-mensal" class="w-full min-h-[260px]"></div>
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span class="text-slate-500">Total Anual Repassado:</span>
+          <strong class="font-bold text-teal-dark font-mono">R$ {{ total_anual_comissoes|floatformat:2 }}</strong>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SEÇÃO 3: Tabela Detalhada por Assessor com Bruto, Líquido e Extrato Mensal -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>Comissionamento dos Assessores</span>
+            {% if mes_selecionado %}
+              <span class="text-xs bg-teal-50 text-teal-dark font-semibold px-2.5 py-0.5 rounded-full border border-teal-100">
+                Competência: {{ nome_mes_selecionado }}/{{ ano_selecionado }}
+              </span>
+            {% else %}
+              <span class="text-xs bg-slate-100 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full">
+                Consolidado Anual {{ ano_selecionado }}
+              </span>
+            {% endif %}
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Visualize o total bruto, líquido e clique em "Extrato Mensal" para ver o histórico detalhado mês a mês.
+          </p>
+        </div>
+        <span class="text-xs font-semibold px-3 py-1 bg-slate-100 text-slate-600 rounded-lg">
+          {{ dados_assessores|length }} assessores cadastrados
+        </span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 uppercase text-slate-500 font-semibold border-b border-slate-100">
+            <tr>
+              <th class="p-3.5">Assessor</th>
+              <th class="p-3.5">Código</th>
+              <th class="p-3.5">Status</th>
+              <th class="p-3.5 text-right">PJ1 Bruto</th>
+              <th class="p-3.5 text-right">PJ2 Bruto</th>
+              <th class="p-3.5 text-right">Plus Bruto</th>
+              <th class="p-3.5 text-right bg-slate-100/60 font-bold text-slate-800">Comissão Bruta</th>
+              <th class="p-3.5 text-right bg-emerald-50/60 font-bold text-teal-dark">Comissão Líquida</th>
+              <th class="p-3.5 text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for a in dados_assessores %}
+              <tr class="hover:bg-slate-50/80 transition">
+                <td class="p-3.5 font-semibold text-slate-900">
+                  <span>{{ a.nome }}</span>
+                </td>
+                <td class="p-3.5 font-mono text-teal-dark font-bold">{{ a.codigo }}</td>
+                <td class="p-3.5">
+                  {% if a.is_active %}
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Ativo</span>
+                  {% else %}
+                    <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">Inativo</span>
+                  {% endif %}
+                </td>
+                <td class="p-3.5 text-right font-mono">R$ {{ a.pj1|floatformat:2 }}</td>
+                <td class="p-3.5 text-right font-mono">R$ {{ a.pj2|floatformat:2 }}</td>
+                <td class="p-3.5 text-right font-mono">R$ {{ a.plus|floatformat:2 }}</td>
+                <td class="p-3.5 text-right font-bold text-slate-900 font-mono text-sm bg-slate-50">
+                  R$ {{ a.bruto|floatformat:2 }}
+                </td>
+                {% if a.liquido >= 0 %}
+                <td class="p-3.5 text-right font-bold text-emerald-700 font-mono text-sm bg-emerald-50/40">
+                  R$ {{ a.liquido|floatformat:2 }}
+                </td>
+                {% else %}
+                <td class="p-3.5 text-right font-bold text-red-700 font-mono text-sm bg-red-50/40">
+                  R$ {{ a.liquido|floatformat:2 }}
+                </td>
+                {% endif %}
+                <td class="p-3.5 text-center flex items-center justify-center gap-1.5">
+                  <button type="button"
+                          onclick="toggleExtrato({{ a.id }})"
+                          id="btn-extrato-{{ a.id }}"
+                          class="text-[11px] font-medium text-teal-dark bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2.5 py-1 rounded-lg transition inline-flex items-center gap-1 cursor-pointer"
+                          title="Ver comissões mês a mês">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Extrato Mensal</span>
+                    <i id="icon-chevron-{{ a.id }}" class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200"></i>
+                  </button>
+                  <a href="{% url 'finance:gestao_fechamento' %}?assessor_id={{ a.id }}{% if mes_selecionado %}&mes={{ mes_selecionado }}{% endif %}&ano={{ ano_selecionado }}"
+                     class="text-[11px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2.5 py-1 rounded-lg transition inline-flex items-center gap-1"
+                     title="Abrir tela oficial de Fechamento">
+                    <i class="fa-solid fa-file-invoice-dollar text-slate-400"></i>
+                    <span>Fechamento</span>
+                  </a>
+                </td>
+              </tr>
+
+              <!-- Linha Expansível: Extrato Mensal com Bruto e Líquido de cada mês -->
+              <tr id="row-extrato-{{ a.id }}" class="hidden bg-slate-50/70 border-y border-teal/20">
+                <td colspan="9" class="p-4 sm:p-6">
+                  <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-100 gap-2">
+                      <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-check text-teal"></i>
+                        <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">
+                          Extrato Mensal {{ ano_selecionado }} — {{ a.nome }} ({{ a.codigo }})
+                        </h4>
+                      </div>
+                      <div class="text-xs text-slate-500">
+                        <span>Total Bruto Anual: <strong class="font-mono text-slate-900">R$ {{ a.total_bruto_ano|floatformat:2 }}</strong></span>
+                        <span class="mx-2">•</span>
+                        <span>Total Líquido Anual: <strong class="font-mono text-emerald-700">R$ {{ a.total_liquido_ano|floatformat:2 }}</strong></span>
+                      </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-50 uppercase text-[10px] text-slate-400 font-bold border-b">
+                          <tr>
+                            <th class="py-2 px-3">Mês</th>
+                            <th class="py-2 px-3 text-right">PJ1 Bruto</th>
+                            <th class="py-2 px-3 text-right">PJ2 Bruto</th>
+                            <th class="py-2 px-3 text-right">Plus Bruto</th>
+                            <th class="py-2 px-3 text-right font-bold text-slate-800 bg-slate-100/50">Comissão Bruta</th>
+                            <th class="py-2 px-3 text-right font-bold text-emerald-700 bg-emerald-50/30">Comissão Líquida</th>
+                            <th class="py-2 px-3 text-center">Ação</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                          {% for m in a.meses_extrato %}
+                            <tr class="hover:bg-slate-50/80 {% if mes_selecionado and m.mes_num == mes_selecionado %}bg-teal-50/40 font-semibold{% endif %}">
+                              <td class="py-2 px-3 font-medium text-slate-800 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full {% if m.tem_movimento %}bg-teal{% else %}bg-slate-200{% endif %}"></span>
+                                <span>{{ m.mes_nome }}</span>
+                              </td>
+                              <td class="py-2 px-3 text-right font-mono">R$ {{ m.pj1_bruto|floatformat:2 }}</td>
+                              <td class="py-2 px-3 text-right font-mono">R$ {{ m.pj2_bruto|floatformat:2 }}</td>
+                              <td class="py-2 px-3 text-right font-mono">R$ {{ m.plus_bruto|floatformat:2 }}</td>
+                              <td class="py-2 px-3 text-right font-bold font-mono text-slate-900 bg-slate-50/50">
+                                R$ {{ m.total_bruto|floatformat:2 }}
+                              </td>
+                              {% if m.total_liquido >= 0 %}
+                              <td class="py-2 px-3 text-right font-bold font-mono text-emerald-700 bg-emerald-50/30">
+                                R$ {{ m.total_liquido|floatformat:2 }}
+                              </td>
+                              {% else %}
+                              <td class="py-2 px-3 text-right font-bold font-mono text-red-700 bg-red-50/30">
+                                R$ {{ m.total_liquido|floatformat:2 }}
+                              </td>
+                              {% endif %}
+                              <td class="py-2 px-3 text-center">
+                                <a href="{% url 'finance:gestao_fechamento' %}?assessor_id={{ a.id }}&mes={{ m.mes_num }}&ano={{ ano_selecionado }}"
+                                   class="text-[10px] text-teal-dark hover:underline font-semibold inline-flex items-center gap-1">
+                                  <span>Ver Fechamento</span>
+                                  <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                                </a>
+                              </td>
+                            </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="9" class="p-8 text-center text-slate-400">Nenhum assessor com dados registrados para este período.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Scripts dos Gráficos com ApexCharts & Tailwind Design System -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const formatMoeda = (val) => {
+    return 'R$ ' + Number(val || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const meses = {{ meses_nomes_json|safe }};
+  const fatPJ1 = {{ fat_pj1_json|safe }};
+  const fatPJ2 = {{ fat_pj2_json|safe }};
+  const fatPlus = {{ fat_plus_json|safe }};
+  const comissaoMensal = {{ comissao_mensal_json|safe }};
+  const rankingNomes = {{ ranking_nomes_json|safe }};
+  const rankingValores = {{ ranking_valores_json|safe }};
+
+  // 1. Gráfico de Barras Agrupadas: Faturamento Mensal por Empresa
+  const optionsFatMensal = {
+    series: [
+      { name: 'PJ1 (Accanto)', data: fatPJ1 },
+      { name: 'PJ2 (Prev, Seg, Con)', data: fatPJ2 },
+      { name: 'Plus (Parceiros)', data: fatPlus }
+    ],
+    chart: {
+      type: 'bar',
+      height: 320,
+      fontFamily: 'Inter, sans-serif',
+      toolbar: { show: false }
+    },
+    colors: ['#121953', '#00b9c2', '#f59e0b'],
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '55%',
+        borderRadius: 4
+      }
+    },
+    dataLabels: { enabled: false },
+    stroke: { show: true, width: 2, colors: ['transparent'] },
+    xaxis: {
+      categories: meses,
+      labels: { style: { colors: '#64748b', fontSize: '11px', fontWeight: 500 } }
+    },
+    yaxis: {
+      labels: {
+        style: { colors: '#64748b', fontSize: '11px' },
+        formatter: (val) => 'R$ ' + Number(val).toLocaleString('pt-BR', { maximumFractionDigits: 0 })
+      }
+    },
+    fill: { opacity: 1 },
+    tooltip: {
+      y: { formatter: (val) => formatMoeda(val) }
+    },
+    legend: { show: false }
+  };
+  new ApexCharts(document.querySelector("#chart-faturamento-mensal"), optionsFatMensal).render();
+
+  // 2. Gráfico Donut: Composição Anual do Faturamento
+  const totalPJ1 = {{ total_anual_pj1|stringformat:".2f" }};
+  const totalPJ2 = {{ total_anual_pj2|stringformat:".2f" }};
+  const totalPlus = {{ total_anual_plus|stringformat:".2f" }};
+  const totalGeral = {{ total_anual_faturamento|stringformat:".2f" }};
+
+  const optionsDonut = {
+    series: [totalPJ1, totalPJ2, totalPlus],
+    labels: ['PJ1 (Accanto)', 'PJ2 (Prev/Seg/Con)', 'Plus (Parceiros)'],
+    chart: {
+      type: 'donut',
+      height: 270,
+      fontFamily: 'Inter, sans-serif'
+    },
+    colors: ['#121953', '#00b9c2', '#f59e0b'],
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '70%',
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: 'Total',
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#64748b',
+              formatter: () => formatMoeda(totalGeral)
+            }
+          }
+        }
+      }
+    },
+    dataLabels: { enabled: false },
+    legend: { position: 'bottom', fontSize: '11px', labels: { colors: '#64748b' } },
+    tooltip: {
+      y: { formatter: (val) => formatMoeda(val) }
+    }
+  };
+  new ApexCharts(document.querySelector("#chart-composicao-faturamento"), optionsDonut).render();
+
+  // 3. Gráfico de Barras Horizontais: Ranking de Comissionamento dos Assessores
+  const optionsRanking = {
+    series: [{ name: 'Comissão Acumulada', data: rankingValores }],
+    chart: {
+      type: 'bar',
+      height: 320,
+      fontFamily: 'Inter, sans-serif',
+      toolbar: { show: false }
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+        borderRadius: 4,
+        barHeight: '55%'
+      }
+    },
+    colors: ['#007d84'],
+    dataLabels: {
+      enabled: true,
+      formatter: (val) => formatMoeda(val),
+      style: { fontSize: '10px', colors: ['#ffffff'], fontWeight: 600 },
+      offsetX: -10
+    },
+    xaxis: {
+      categories: rankingNomes,
+      labels: {
+        style: { colors: '#64748b', fontSize: '11px' },
+        formatter: (val) => 'R$ ' + Number(val).toLocaleString('pt-BR', { maximumFractionDigits: 0 })
+      }
+    },
+    yaxis: {
+      labels: { style: { colors: '#1e293b', fontSize: '11px', fontWeight: 600 } }
+    },
+    tooltip: {
+      y: { formatter: (val) => formatMoeda(val) }
+    }
+  };
+  new ApexCharts(document.querySelector("#chart-ranking-assessores"), optionsRanking).render();
+
+  // 4. Gráfico de Área Suave: Evolução Mensal do Comissionamento Pago
+  const optionsComissaoMensal = {
+    series: [{ name: 'Comissões Repassadas', data: comissaoMensal }],
+    chart: {
+      type: 'area',
+      height: 260,
+      fontFamily: 'Inter, sans-serif',
+      toolbar: {
+        show: false
+      },
+      zoom: {
+        enabled: false
+      }
+    },
+    colors: ['#00b9c2'],
+    stroke: { curve: 'smooth', width: 3 },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.45,
+        opacityTo: 0.05,
+        stops: [0, 95, 100]
+      }
+    },
+    dataLabels: { enabled: false },
+    xaxis: {
+      categories: meses,
+      labels: { style: { colors: '#64748b', fontSize: '10px', fontWeight: 500 } }
+    },
+    yaxis: {
+      labels: {
+        style: { colors: '#64748b', fontSize: '10px' },
+        formatter: (val) => 'R$ ' + Number(val).toLocaleString('pt-BR', { maximumFractionDigits: 0 })
+      }
+    },
+    tooltip: {
+      y: { formatter: (val) => formatMoeda(val) }
+    }
+  };
+  new ApexCharts(document.querySelector("#chart-comissao-mensal"), optionsComissaoMensal).render();
+});
+
+function toggleExtrato(id) {
+  const row = document.getElementById('row-extrato-' + id);
+  const icon = document.getElementById('icon-chevron-' + id);
+  if (row) {
+    row.classList.toggle('hidden');
+  }
+  if (icon) {
+    icon.classList.toggle('rotate-180');
+  }
+}
+</script>
 {% endblock %}
