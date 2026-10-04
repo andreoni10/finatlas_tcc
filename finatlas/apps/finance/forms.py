@@ -39,11 +39,14 @@ class LancamentoPJ2PrevidenciaEditForm(forms.ModelForm):
 
 
 class LancamentoPJ2SeguroForm(forms.ModelForm):
-    # Lista fixa das 3 seguradoras
+    # Lista fixa das 6 seguradoras
     SEGURADORAS = [
         ("PRUDENTIAL", "Prudential"),
         ("METLIFE", "MetLife"),
         ("ICATU", "Icatu"),
+        ("MONGERAL", "Mongeral"),
+        ("BRADESCO", "Bradesco"),
+        ("OMINT", "Omint"),
     ]
     seguradora = forms.ChoiceField(choices=SEGURADORAS, label="Seguradora")
 

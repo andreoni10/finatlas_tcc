@@ -136,11 +136,11 @@
         </div>
       </div>
 
-      <!-- Card 2: PJ1 (Accanto) -->
+      <!-- Card 2: PJ1 (Accanto Assessoria) -->
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-teal/50 transition group">
         <div>
           <div class="flex items-center justify-between text-slate-500 mb-2">
-            <span class="text-xs uppercase font-semibold tracking-wider text-slate-500">PJ1 (Accanto)</span>
+            <span class="text-xs uppercase font-semibold tracking-wider text-slate-500">PJ1 (Accanto Assessoria)</span>
             <div class="w-8 h-8 rounded-lg bg-navy-50 text-navy-900 flex items-center justify-center text-sm group-hover:bg-navy-900 group-hover:text-white transition">
               <i class="fa-solid fa-arrow-trend-up"></i>
             </div>
@@ -161,11 +161,11 @@
         </div>
       </div>
 
-      <!-- Card 3: PJ2 (Prev, Seguros, Consórcio) -->
+      <!-- Card 3: PJ2 (Accanto Serviços) -->
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-teal/50 transition group">
         <div>
           <div class="flex items-center justify-between text-slate-500 mb-2">
-            <span class="text-xs uppercase font-semibold tracking-wider text-slate-500">PJ2 (Prev, Seg, Con)</span>
+            <span class="text-xs uppercase font-semibold tracking-wider text-slate-500">PJ2 (Accanto Serviços)</span>
             <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-dark flex items-center justify-center text-sm group-hover:bg-teal group-hover:text-white transition">
               <i class="fa-solid fa-shield-halved"></i>
             </div>
@@ -186,11 +186,11 @@
         </div>
       </div>
 
-      <!-- Card 4: Plus (Parceiros) -->
+      <!-- Card 4: Plus -->
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:border-amber-400/50 transition group">
         <div>
           <div class="flex items-center justify-between text-slate-500 mb-2">
-            <span class="text-xs uppercase font-semibold tracking-wider text-slate-500">Plus (Parceiros)</span>
+            <span class="text-xs uppercase font-semibold tracking-wider text-slate-500">Plus</span>
             <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm group-hover:bg-amber-500 group-hover:text-white transition">
               <i class="fa-solid fa-handshake"></i>
             </div>
@@ -244,15 +244,15 @@
         <div class="pt-4 border-t border-slate-100 grid grid-cols-3 gap-2 text-center text-xs">
           <div>
             <span class="text-slate-400 block text-[10px] uppercase font-bold">PJ1</span>
-            <span class="font-bold text-navy-900">R$ {{ total_anual_pj1|floatformat:0 }}</span>
+            <span class="font-bold text-navy-900">R$ {{ total_anual_pj1|floatformat:2 }}</span>
           </div>
           <div>
             <span class="text-slate-400 block text-[10px] uppercase font-bold">PJ2</span>
-            <span class="font-bold text-teal-dark">R$ {{ total_anual_pj2|floatformat:0 }}</span>
+            <span class="font-bold text-teal-dark">R$ {{ total_anual_pj2|floatformat:2 }}</span>
           </div>
           <div>
             <span class="text-slate-400 block text-[10px] uppercase font-bold">Plus</span>
-            <span class="font-bold text-amber-600">R$ {{ total_anual_plus|floatformat:0 }}</span>
+            <span class="font-bold text-amber-600">R$ {{ total_anual_plus|floatformat:2 }}</span>
           </div>
         </div>
       </div>
@@ -342,7 +342,7 @@
                   {% if a.is_active %}
                     <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Ativo</span>
                   {% else %}
-                    <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">Inativo</span>
+                    <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold">Inativo</span>
                   {% endif %}
                 </td>
                 <td class="p-3.5 text-right font-mono">R$ {{ a.pj1|floatformat:2 }}</td>
