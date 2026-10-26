@@ -85,8 +85,8 @@ def salvar_plus(request, form_plus):
             
     if form_plus.is_valid():
         plus = form_plus.save(commit=False)
-        plus.valor_imposto = plus.valor_bruto * (plus.pct_imposto / Decimal("100")) # Cálculo automático do imposto e líquido
-        plus.valor_liquido = plus.valor_bruto - plus.valor_imposto
+        plus.valor_imposto = plus.valor_bruto * (plus.pct_imposto / Decimal("100")) # Cálculo automático do imposto
+        plus.valor_liquido = plus.valor_bruto - plus.valor_imposto # Cálculo automático do líquido
         plus.save()
         messages.success(request, f"Lançamento da Plus ({plus.parceiro}) cadastrado com sucesso!")
 
