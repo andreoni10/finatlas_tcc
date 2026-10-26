@@ -147,9 +147,23 @@ def gestao_fechamento(request):
             if request.method == "POST":
                 form = FechamentoMensalForm(request.POST, instance=fechamento)
                 if form.is_valid():
-                    form.save()
-                    messages.success(request, f"Fechamento de {assessor_selecionado} atualizado com sucesso!")
-                    return redirect(f"{request.path}?assessor_id={assessor_id}&mes={mes}&ano={ano}")
+                    fechamento_salvo = form.save()
+                    messages.success(
+                        request,
+                        (
+                            f"Fechamento de {assessor_selecionado} atualizado com sucesso. "
+                            f"Data de pagamento: "
+                            f"{fechamento_salvo.data_pagamento or 'A definir'}."
+                        ),
+                    )
+                    return redirect(
+                        f"{request.path}?assessor_id={assessor_id}&mes={mes}&ano={ano}"
+                    )
+
+                messages.error(
+                    request,
+                    "Não foi possível salvar o fechamento. Verifique os erros abaixo.",
+                )
             else:
                 form = FechamentoMensalForm(instance=fechamento)
 

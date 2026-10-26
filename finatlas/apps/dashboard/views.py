@@ -30,7 +30,11 @@ def advisor_dashboard(request):
     ano = int(request.GET.get("ano", hoje.year))
 
     # Gera ou obtém o fechamento oficial do assessor
-    fechamento = gerar_ou_atualizar_fechamento(assessor, ano, mes)
+    gerar_ou_atualizar_fechamento(assessor, ano, mes)
+    fechamento = FechamentoMensalAssessor.objects.get(
+        assessor=assessor,
+        competencia=datetime.date(ano, mes, 1),
+    )
     
     # Consultas filtradas estritamente para o assessor logado
     pj1_itens = LancamentoPJ1.objects.filter(assessor=assessor, data__year=ano, data__month=mes)

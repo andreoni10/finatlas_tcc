@@ -75,6 +75,21 @@
 
           <form method="POST" class="space-y-4 text-xs">
             {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="p-3 mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+
+            {% for field in form %}
+              {% if field.errors %}
+                <div class="p-3 mb-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                  <strong>{{ field.label }}:</strong>
+                  {{ field.errors }}
+                </div>
+              {% endif %}
+            {% endfor %}
             
             <div>
               <label class="block font-semibold text-slate-600 mb-1">Data do Pagamento</label>
