@@ -27,7 +27,7 @@
     <!-- Filtro de Competência (Mês / Ano) -->
     <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-wrap items-center justify-between gap-4">
       <div>
-        <h2 class="text-lg font-bold text-slate-800">Demonstrativo de Comissões</h2>
+        <h2 class="text-lg font-bold text-slate-800">Demonstrativo de Comissões | Accanto</h2>
         <p class="text-xs text-slate-500">Código do Assessor: <strong class="font-mono text-teal-dark">{{ assessor.codigo_assessor }}</strong></p>
       </div>
 
@@ -137,7 +137,7 @@
               <td colspan="2" class="p-3 font-extrabold uppercase">Total:</td>
               <td class="p-3 text-right">R$ {{ fechamento.total_bruto|floatformat:2 }}</td>
               <td class="p-3 text-center text-slate-400">-</td>
-              <td class="p-3 text-right text-slate-600">R$ {{ fechamento.total_imposto|floatformat:2 }}</td>
+              <td class="p-3 text-right text-rose-600 bg-red-50">R$ {{ fechamento.total_imposto|floatformat:2 }}</td>
               {% if fechamento.total_liquido >= 0 %}
               <td class="p-3 text-right font-extrabold text-sm text-teal-dark bg-teal-50">
                 R$ {{ fechamento.total_liquido|floatformat:2 }}
@@ -165,7 +165,7 @@
     <!-- Cards de Resumo dos Valores -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <div class="bg-gradient-to-br from-teal-dark to-teal text-white p-5 rounded-2xl shadow-sm">
-        <span class="text-xs uppercase tracking-wider font-semibold opacity-90">Total a Receber</span>
+        <span class="text-xs uppercase tracking-wider font-semibold opacity-90">Valor Total Bruto</span>
         <div class="text-2xl font-extrabold mt-2">R$ {{ total_geral|floatformat:2 }}</div>
       </div>
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
